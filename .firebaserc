@@ -1,0 +1,6 @@
+{
+  "projects": {
+    "default": "charon-fnbr",
+    "charon-pr": "charon-fnbr"
+  }
+}

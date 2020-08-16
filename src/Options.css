@@ -1,0 +1,299 @@
+p.lang
+{
+	position: absolute;
+left: 53.00%;
+right: 42.47%;
+top: 34.89%;
+bottom: 60.67%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+
+color: rgba(0, 0, 0, 0.87);
+
+}
+
+p.corpus
+{
+	position: absolute;
+left: 74%;
+right: 20.71%;
+top: 34.89%;
+bottom: 60.67%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+
+color: rgba(0, 0, 0, 0.87);
+}
+
+p.doc
+{
+	position: absolute;
+left: 53.00%;
+right: 42.12%;
+top: 52.67%;
+bottom: 42.89%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 20px;
+/* identical to box height, or 143% */
+
+
+color: rgba(0, 0, 0, 0.87);
+}
+
+.dropdown1
+{
+
+position: absolute;
+left: 53.00%;
+right: 35.90%;
+top: 42%;
+bottom: 53.5%;
+
+background: #FAFAFA;
+border: 1px solid rgba(0, 0, 0, 0.12);
+border-radius: 2px;
+}
+
+.dropdown-content1 {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content1 a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content1 a:hover {background-color: #ddd;}
+
+.dropdown1:hover .dropdown-content1 {display: block;}
+
+.dropdown1:hover .btn1 {background-color: #3e8e41;}
+
+div.dropdown2
+{
+position: absolute;
+left: 74%;
+right: 16.4%;
+top: 42%;
+bottom: 53.5%;
+
+background: #FAFAFA;
+border: 1px solid rgba(0, 0, 0, 0.12);
+border-radius: 2px;
+}
+
+.dropdown-content2 {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content2 a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content2 a:hover {background-color: #ddd;}
+
+.dropdown2:hover .dropdown-content2 {display: block;}
+
+.dropdown2:hover .btn2 {background-color: #3e8e41;}
+
+div.dropdown3
+{
+position: absolute;
+left: 53.00%;
+right: 35.48%;
+top: 59.78%;
+bottom: 35.8%;
+
+background: #FAFAFA;
+border: 1px solid rgba(0, 0, 0, 0.12);
+border-radius: 2px;
+}
+
+.dropdown-content3 {
+  display: none;
+  position: absolute;
+  background-color: #f1f1f1;
+  min-width: 160px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+.dropdown-content3 a {
+  color: black;
+  padding: 12px 16px;
+  text-decoration: none;
+  display: block;
+}
+
+.dropdown-content3 a:hover {background-color: #ddd;}
+
+.dropdown3:hover .dropdown-content3 {display: block;}
+
+.dropdown3:hover .btn3 {background-color: #3e8e41;}
+
+.Enter
+{
+position: absolute;
+left: 53.00%;
+right: 35.65%;
+top: 76.89%;
+bottom: 15.11%;
+
+background: #009688;
+box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.24), 0px 0px 2px rgba(0, 0, 0, 0.12);
+border:none;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 16px;
+text-align: center;
+letter-spacing: 0.0357143em;
+
+color: #FFFFFF;
+}
+
+button.btn1 {
+position: absolute;
+left: 5.00%;
+right: 38%;
+top: 29.78%;
+bottom: 53.78%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 20px;
+box-shadow: none;
+border: none;
+background: none;
+color: none;
+/* identical to box height, or 167% */
+
+color: rgba(0, 0, 0, 0.5993);
+}
+
+button.btn2 {
+position: absolute;
+left: 5.00%;
+right: 15.88%;
+top: 29.78%;
+bottom: 53.78%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 20px;
+box-shadow: none;
+border: none;
+background: none;
+color: none;
+/* identical to box height, or 167% */
+
+
+color: rgba(0, 0, 0, 0.5993);
+}
+
+button.btn3 {
+position: absolute;
+left: 5.00%;
+right: 37.53%;
+top: 29.78%;
+bottom: 36%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 20px;
+box-shadow: none;
+border: none;
+background: none;
+color: none;
+/* identical to box height, or 167% */
+
+color: rgba(0, 0, 0, 0.5993);
+}
+
+a.cancel
+{
+position: absolute;
+left: 68.26%;
+right: 26.38%;
+top: 79.11%;
+bottom: 17.33%;
+border-bottom: none;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 16px;
+text-align: center;
+letter-spacing: 0.0357143em;
+
+color: rgba(0, 0, 0, 0.38);
+
+}
+
+p.trythis
+{
+position: absolute;
+left: 53.00%;
+right: 31.18%;
+top: 86.44%;
+bottom: 10%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+
+color: rgba(0, 0, 0, 0.539261);
+}
+
+.tt:link
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+color: #008B8B;;
+}

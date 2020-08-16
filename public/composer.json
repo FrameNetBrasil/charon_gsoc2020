@@ -1,0 +1,8 @@
+{
+    "require": {
+        "php-ffmpeg/php-ffmpeg": "^0.16.0",
+        "guzzlehttp/guzzle": "^7.0",
+        "thiagoalessio/tesseract_ocr": "^2.9",
+        "james-heinrich/getid3": "^1.9"
+    }
+}

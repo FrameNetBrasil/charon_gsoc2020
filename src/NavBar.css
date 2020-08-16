@@ -1,0 +1,13 @@
+.Bar
+{
+display: flex;
+flex-direction: column;
+position: relative;
+left: 53.18%;
+right: 20.12%;
+top: 22.89%;
+bottom: 71.78%;
+font-family: Roboto;
+
+background: #FFFFFF;
+}

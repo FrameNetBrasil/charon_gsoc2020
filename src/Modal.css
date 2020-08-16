@@ -1,0 +1,48 @@
+
+
+/* Modal Content */
+.modal-container {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  font-size: 16px;
+  width: 80%;
+}
+
+
+/* The Close Button */
+.modal-close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.modal-close:hover,
+.modal-close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+button {
+position: absolute;
+left: 30.00%;
+right: 30.00%;
+top: 29.78%;
+bottom: 53.78%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 20px;
+box-shadow: none;
+border: none;
+background: none;
+color: none;
+/* identical to box height, or 167% */
+
+color: rgba(0, 0, 0, 0.5993);
+}
