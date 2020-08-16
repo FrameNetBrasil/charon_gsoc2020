@@ -1,0 +1,195 @@
+.Box {
+display: flex;
+flex-direction: column;
+position: absolute;
+left: 4.71%;
+right: 54.12%;
+top: 23.33%;
+bottom: 10%;
+font-family: Roboto;
+
+background: #FFFFFF;
+border: 1px solid #DDDDDD;
+box-sizing: border-box;
+border-radius: 3px;
+}
+
+.Box img {
+position: absolute;
+left: 35%;
+right: 69.41%;
+top: 20.67%;
+bottom: 34%;
+
+background: #EEEEEE;
+}
+
+.Box p
+{
+position: absolute;
+left: 30.94%;
+right: 30.94%;
+top: 56.67%;
+bottom: 32.67%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+line-height: 24px;
+/* or 150% */
+
+text-align: center;
+
+color: rgba(0, 0, 0, 0.87);
+
+}
+
+.Box a
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 24px;
+text-decoration: none;
+/* identical to box height, or 171% */
+
+color: rgba(0, 0, 0, 0.87);
+}
+
+.Box a:link
+{
+    color: #000;
+    border-bottom: 1px solid #009688;
+}
+
+.Box a:hover
+{
+	color: #009688;
+}
+
+.ftw:link
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+color: #008B8B;;
+}
+
+.fyc:link
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+color: #008B8B;
+
+}
+
+.ftw:visited
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+color: #008B8B;;
+}
+
+.fyc:visited
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 16px;
+color: #008B8B;
+
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  font-size: 16px;
+  width: 80%;
+}
+
+.modal-content p
+{
+  font-family: Roboto
+}
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.modal1 {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content1 {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  font-size: 16px;
+  width: 80%;
+}
+
+.modal-content1 p
+{
+  font-family: Roboto
+}
+/* The Close Button */
+.close1 {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close1:hover,
+.close1:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+

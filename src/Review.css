@@ -1,0 +1,145 @@
+.Box1 {
+display: flex;
+flex-direction: column;
+position: absolute;
+left: 48.00%;
+right: 4.12%;
+top: 35.33%;
+bottom: 25.11%;
+font-family: Roboto;
+
+background: #F8F4F4;
+border: 1px solid #DDDDDD;
+box-sizing: border-box;
+border-radius: 3px;
+overflow-y: scroll;
+
+}
+
+.menu4{
+    width: 100%;
+    padding: 0;
+}
+
+.menu4 li{
+    list-style-type: none;
+    padding: 10px;
+    position:relative;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.menu4 li a{
+    color:#000;
+    text-decoration:none;
+}
+
+.menu4 li a:after{
+    position:absolute;
+    font-family: Roboto;
+    top:6px;
+    left:72px;
+}
+
+.menu4 li:last-child a:after{
+    content:"";
+}
+
+button
+{
+position: absolute;
+left: 53.00%;
+right: 35.65%;
+top: 76.89%;
+bottom: 15.11%;
+
+background: #009688;
+box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.24), 0px 0px 2px rgba(0, 0, 0, 0.12);
+border:none;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: 500;
+font-size: 14px;
+line-height: 16px;
+text-align: center;
+letter-spacing: 0.0357143em;
+
+color: #FFFFFF;
+}
+
+
+p.viewsource
+{
+position: absolute;
+left: 53.00%;
+right: 31.18%;
+top: 86.44%;
+bottom: 10%;
+
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+line-height: 16px;
+/* identical to box height, or 133% */
+
+
+color: rgba(0, 0, 0, 0.539261);
+}
+
+.vs:link
+{
+font-family: Roboto;
+font-style: normal;
+font-weight: normal;
+font-size: 12px;
+color: #008B8B;;
+}
+
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  font-size: 16px;
+  width: 80%;
+}
+
+.modal-content p
+{
+  font-family: Roboto
+}
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.s1
+{
+  
+}

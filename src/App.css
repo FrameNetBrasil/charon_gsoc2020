@@ -1,0 +1,55 @@
+.App {
+}
+
+.App-header {
+  padding-right: 20px;
+  padding-left: 20px;
+  padding-top: 20px;
+  padding-bottom:20px;
+  background-color: #FAFAFA;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+.divider
+{
+position: absolute;
+left: 0%;
+right: 0%;
+top: 15.56%;
+bottom: 83.78%;
+
+border: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.divider1{
+position: absolute;
+width: 600px;
+height: 2px;
+top: 10.33%;
+
+background: rgba(0, 0, 0, 0.12);
+}
+
+.Nav
+{
+display: flex;
+flex-direction: column;
+position: absolute;
+left: 47.71%;
+right: 20.12%;
+top: 23.33%;
+bottom: 10%;
+font-family: Roboto;
+}
