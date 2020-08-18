@@ -12,9 +12,41 @@ from applyGeometricTransformation import applyGeometricTransformation
 from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from PIL import Image
 
-def objectTracking(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_to_file=False):
+import xml.etree.ElementTree as ET
+
+def indent(elem, level=0):
+  i = "\n" + level*"  "
+  if len(elem):
+    if not elem.text or not elem.text.strip():
+      elem.text = i + "  "
+    if not elem.tail or not elem.tail.strip():
+      elem.tail = i
+    for elem in elem:
+      indent(elem, level+1)
+    if not elem.tail or not elem.tail.strip():
+      elem.tail = i
+  else:
+    if level and (not elem.tail or not elem.tail.strip()):
+      elem.tail = i
+
+def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, save_to_file=False):
     # initialize
     print('========= Object tracking')
+    
+    # create the file structure
+    annotation = ET.Element('annotation')
+    folder = ET.SubElement(annotation, 'folder')
+    filename = ET.SubElement(annotation, 'filename')
+    folder.text = 'not available'
+    filename.text = 'not available'
+    source = ET.SubElement(annotation, 'source')
+    typ = ET.SubElement(source, 'type')
+    sourceImage = ET.SubElement(source, 'sourceImage')
+    sourceAnnotation = ET.SubElement(source, 'sourceAnnotation')
+    typ.text = 'video'
+    sourceImage.text = 'vatic frames'
+    sourceAnnotation.text = 'vatic'
+    
     n_frame = length-10
     count=0
     frames = np.empty((n_frame,),dtype=np.ndarray)
@@ -29,7 +61,9 @@ def objectTracking(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_t
         count=count+1
     n_frame=count
     print("n frame count = " , n_frame)
+    
     count=0
+    count1=0
     out=[]
     for frame_idx in range(0,n_frame-10,10):
         print("== frame_idx = " + str(frame_idx))
@@ -49,9 +83,11 @@ def objectTracking(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_t
 
             im = Image.open(filename) 
             region = im.crop((xmn, ymn, xmx, ymx))
-            region.save("/home/framenetbr/public_html/charon/data/Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png")
-            object_path="/home/framenetbr/public_html/charon/data/Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png"
+
+            region.save("/home/framenetbr/public_html/charon/data/Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png")
+            object_path="/home/framenetbr/public_html/charon/data/Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png"
             file=open("/home/framenetbr/public_html/charon/data/Object_Store/object_annotations.csv","a+")
+      
             wrtr= csv.writer(file)
             wrtr.writerow([object_path,labels[o]])
             file.close()
@@ -129,6 +165,106 @@ def objectTracking(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_t
             #     for i in range(1,n_frame):
             #         cv2.imshow("win",frames_draw[i])
             #         cv2.waitKey(50)
+            
+    count1=0
+    for frame_idx in range(0,n_frame-10,10):
+        filename= "/var/www/html/data/Video_Frames/frame%d.png" % frame_idx
+        labels,pixels = predict.return_pixels1(filename)
+                
+        n_object= len(pixels)
+        
+        for o in range(0,n_object):
+
+            obj = ET.SubElement(annotation,'object')
+            name = ET.SubElement(obj, 'name')
+            moving = ET.SubElement(obj, 'moving')
+            action = ET.SubElement(obj, 'action')
+            verified = ET.SubElement(obj, 'verified')
+            id1 = ET.SubElement(obj, 'id')
+            createdFrame = ET.SubElement(obj, 'createdFrame')
+            startFrame = ET.SubElement(obj, 'startFrame')
+            endFrame = ET.SubElement(obj, 'endFrame')
+            name.text=labels[o]
+            moving.text='true'
+            verified.text='0'
+
+            count1=count1+1
+            
+            id1.text=str(count1)
+            createdFrame.text='0'
+            startFrame.text= str(frame_idx)
+            endFrame.text= str(frame_idx+10)
+
+            for j in range(frame_idx,frame_idx+10):
+
+                if bboxs[j][o][0,0]<0:
+                    bboxs[j][o][0,0]=0.0
+                if bboxs[j][o][0,1]<0:
+                    bboxs[j][o][0,1]=0.0
+                if bboxs[j][o][1,0]<0:
+                    bboxs[j][o][1,0]=0.0
+                if bboxs[j][o][1,1]<0:
+                    bboxs[j][o][1,1]=0.0
+                if bboxs[j][o][2,0]<0:
+                    bboxs[j][o][2,0]=0.0
+                if bboxs[j][o][2,1]<0:
+                    bboxs[j][o][2,1]=0.0
+                if bboxs[j][o][3,0]<0:
+                    bboxs[j][o][3,0]=0.0
+                if bboxs[j][o][3,1]<0:
+                    bboxs[j][o][3,1]=0.0
+                
+                if math.isnan(bboxs[j][o][3,0]) or math.isnan(bboxs[j][o][3,1]) or math.isnan(bboxs[j][o][2,0]) or math.isnan(bboxs[j][o][2,1]) or math.isnan(bboxs[j][o][1,0]) or math.isnan(bboxs[j][o][1,1]) or math.isnan(bboxs[j][o][0,0]) or math.isnan(bboxs[j][o][0,1]):
+                    break
+                polygon= ET.SubElement(obj, 'polygon')
+                t= ET.SubElement(polygon,'t')
+                t.text= str(j)
+                pt= ET.SubElement(polygon,'pt')
+                x= ET.SubElement(pt,'x')
+                y= ET.SubElement(pt,'y')
+                l= ET.SubElement(pt,'l')
+                x.text=str(int(bboxs[j][o][0,0]))
+                y.text=str(int(bboxs[j][o][0,1]))
+                if j==frame_idx:
+                    l.text='1'
+                else:
+                    l.text='0'
+                pt= ET.SubElement(polygon,'pt')
+                x= ET.SubElement(pt,'x')
+                y= ET.SubElement(pt,'y')
+                l= ET.SubElement(pt,'l')
+                x.text=str(int(bboxs[j][o][2,0]))
+                y.text=str(int(bboxs[j][o][2,1]))
+                if j==frame_idx:
+                    l.text='1'
+                else:
+                    l.text='0'
+                pt= ET.SubElement(polygon,'pt')
+                x= ET.SubElement(pt,'x')
+                y= ET.SubElement(pt,'y')
+                l= ET.SubElement(pt,'l')
+                x.text=str(int(bboxs[j][o][3,0]))
+                y.text=str(int(bboxs[j][o][3,1]))
+                if j==frame_idx:
+                    l.text='1'
+                else:
+                    l.text='0'
+                pt= ET.SubElement(polygon,'pt')
+                x= ET.SubElement(pt,'x')
+                y= ET.SubElement(pt,'y')
+                l= ET.SubElement(pt,'l')
+                x.text=str(int(bboxs[j][o][1,0]))
+                y.text=str(int(bboxs[j][o][1,1]))
+                if j==frame_idx:
+                    l.text='1'
+                else:
+                    l.text='0'
+
+    # create a new XML file with the results
+    indent(annotation)
+    mydata = ET.tostring(annotation)
+    myfile = open("/var/www/html/data/annotations.xml", "wb")
+    myfile.write(mydata)
 
 def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_to_file=False):
     # initialize
