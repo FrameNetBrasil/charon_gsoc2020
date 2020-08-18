@@ -56,6 +56,7 @@ $ apt update && apt install -y libsm6 libxext6
 $ apt-get install -y libxrender-dev
 $ python3 -m pip install --upgrade pip 
 $ python3 -m pip install tensorflow==2.2.0 --no-cache-dir
+$ python3 -m pip install elementpath
 $ apt-get install python3-tk 
 $ python3 track_objects.py
 ```
