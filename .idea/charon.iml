@@ -4,6 +4,30 @@
     <content url="file://$MODULE_DIR$">
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/spec" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/alchemy/binary-driver" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/composer" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/doctrine/cache" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/evenement/evenement" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/guzzlehttp/guzzle" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/guzzlehttp/promises" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/guzzlehttp/psr7" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/james-heinrich/getid3" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/neutron/temporary-filesystem" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/paragonie/random_compat" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/php-ffmpeg/php-ffmpeg" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/psr/http-client" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/psr/http-message" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/psr/log" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/ralouphie/getallheaders" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/filesystem" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-ctype" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-intl-idn" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-intl-normalizer" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-php70" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-php72" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/polyfill-php80" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/symfony/process" />
+      <excludeFolder url="file://$MODULE_DIR$/public/vendor/thiagoalessio/tesseract_ocr" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
