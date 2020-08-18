@@ -16,10 +16,10 @@ $l = [];
 $c = [];
 $d = [];
 
-$vfd = $config['vfd'];
-if ($vfd == null) {
-    $vfd = "/";
-}
+//$vfd = $config['vfd'];
+//if ($vfd == null) {
+//    $vfd = "/";
+//}
 
 $con = mysqli_connect($hostname, $username, $password);
 mysqli_select_db($con, $dbname);
