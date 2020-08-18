@@ -23,7 +23,8 @@ export class Review extends Component {
       str: "",
       start: "",
       end: "",
-      ip: ""
+      ip: "",
+      sid: ""
         }
   }
 
@@ -97,18 +98,21 @@ export class Review extends Component {
     this.modalNewClose();
   }
 
-  get_start_end_ts= (e,val) =>
+  get_start_end_ts= (e,val,id1) =>
   {
      e.preventDefault();
      this.str=val;
      var res= val.split("\n");
      var start= res[0];
      var end= res[res.length - 1];
+     var sid= id1;
      this.start= start;
      this.end= end;
+     this.sid= sid;
      var formData=new FormData();
      formData.append("start_time",this.start);
      formData.append("end_time",this.end);
+     formData.append("sid",this.sid);
      var xhr=new XMLHttpRequest();
      var ip= this.state.ip;
      var url= process.env.REACT_APP_FLASK_URI;
@@ -129,7 +133,7 @@ handleClick({nativeEvent}) {
       <Box1 />
       <div className="Box1">
       <ul className="menu4">
-        {this.state.text.map((t) => (<li><a onClick={ e => this.get_start_end_ts(e, t) }>{t}</a></li>))}
+        {this.state.text.map((t) => (<li><a onClick={ e => this.get_start_end_ts(e, t, this.state.text.indexOf(t)) }>{t}</a></li>))}
       </ul>
       </div>
       <p>Click on a sentence to track objects in that video clip</p>
