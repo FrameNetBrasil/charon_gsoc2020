@@ -27,22 +27,23 @@ def track():
    paths = [os.path.join(PATH_TO_VIDEO_DIR, basename) for basename in fnames]
    filename=max(paths, key=os.path.getctime)
    print(filename)
-   f=filename.split(".")
+   fn=filename.split(".")
+   f=fn[0].split("/")
    start_time=request.form['start_time']
    end_time=request.form['end_time']
    sid=request.form['sid']
-   sid=sid-1
+   sid=str(int(sid)-1)
    print(PATH_TO_VIDEO_DIR)
-   video_path=os.path.join(PATH_TO_VIDEO_DIR,filename)
+   video_path=filename
    print(video_path)
    v=0
    
    #extract video clip from timestamps
    origdir= config.get("charon", "dataPath")  
-   os.chdir(origdir+ 'Object_Store')
-   if os.path.isdir(f[0])==False:
-      os.mkdir(f[0])
-   os.chdir(f[0])
+   os.chdir('Object_Store')
+   if os.path.isdir(f[len(f)-1])==False:
+      os.mkdir(f[len(f)-1])
+   os.chdir(f[len(f)-1])
    os.mkdir("sentence_"+sid)
    os.chdir(origdir)
    
