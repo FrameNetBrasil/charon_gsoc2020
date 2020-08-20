@@ -40,7 +40,7 @@ def track():
    
    #extract video clip from timestamps
    origdir= config.get("charon", "dataPath")  
-   os.chdir('Object_Store')
+   os.chdir(origdir +'Object_Store')
    if os.path.isdir(f[len(f)-1])==False:
       os.mkdir(f[len(f)-1])
    os.chdir(f[len(f)-1])
