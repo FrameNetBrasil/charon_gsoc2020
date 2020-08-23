@@ -16,8 +16,18 @@ export class Report extends Component{
     GetOption=(e,val)=>
     {
      e.preventDefault();
-     alert(val); 
+     this.val= val;
+     var formData=new FormData();
+     formData.append("val",this.val);
+     var xhr=new XMLHttpRequest();
+     xhr.open('POST','http://127.0.0.1:5000/report',true);
+     xhr.send(formData);
     }
+    
+    handleClick({nativeEvent}) {
+      var url= 'http://127.0.0.1:5000';
+      axios.get(url);
+  }
 
    render()
    {
