@@ -1,16 +1,19 @@
 import mysql.connector
 import json
-from flask import Flask,render_template,request
-from flask_cors import CORS
+from flask import Flask,render_template,request,jsonify
+from flask_cors import CORS, cross_origin
 import requests
 import sys
 import time
 import webbrowser
 import os
 
-def getReports(val):
+def getReports(val,Id):
 
    if val=="1":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -19,7 +22,7 @@ def getReports(val):
                 )
        v=1
 
-       query = "SELECT idCorpus from corpus"
+       query = "SELECT idCorpus,entry from corpus"
 
        cursor = conn.cursor()
        cursor.execute(query)
@@ -27,321 +30,311 @@ def getReports(val):
 
        cursor.close()
 
-       d={}
-
+           
        for icd in crp_ids:
-                    
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           Fset=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
 
-           cursor.close()
+           if str(icd[0])==Id:
+              query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
+              l=[]
+              
+              cursor = conn.cursor()
+              cursor.execute(query1)
+              docs = cursor.fetchall()
 
-           doc_ids=[]
+              cursor.close()
 
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
+              doc_ids=[]
 
-               for y in ds:
-                   doc_ids.append(y)
+              for x in docs:
+                  query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+              
+                  cursor = conn.cursor()
+                  cursor.execute(query11)
+                  ds = cursor.fetchall()
 
-               cursor.close()
+                  for y in ds:
+                      doc_ids.append(y)
 
-           if len(doc_ids)==0:
-               continue
+                  cursor.close()
 
-           for id1 in doc_ids:
-            
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
+              if len(doc_ids)==0:
+                  continue
+              else:
+                 data={}
+                 data["idCorpus"]=icd[0]
+                 data["corpusEntry"]=icd[1]
+                 n=icd[1].split("_")
+                 n.pop(0)
+                 data["corpusName"]="_".join(n)
+                 textFrames=[]
+                 videoFrames=[]
+                 
 
-               cursor.close()
+                 for id1 in doc_ids:
+                  
+                     
+                     query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                     
+                     cursor = conn.cursor()
+                     cursor.execute(query2)
+                     para_ids = cursor.fetchall()
 
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
+                     cursor.close()
 
-                   cursor.close()
+                     for id2 in para_ids:
+                         query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                         
+                         cursor = conn.cursor()
+                         cursor.execute(query3)
+                         sent_ids = cursor.fetchall()
 
-                   for id3 in sent_ids:
+                         cursor.close()
 
-                       query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
+                         for id3 in sent_ids:
 
-                       feset_ids= set(fe_ids)
+                             query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query4)
+                             fe_ids = cursor.fetchall()
 
-                       cursor.close()
+                             feset_ids= set(fe_ids)
 
-                       feset=[]
+                             cursor.close()
 
-                       if (None,) in feset_ids:
-                           feset_ids.remove((None,))
+                             feset=[]
 
-                       for id4 in feset_ids:
+                             if (None,) in feset_ids:
+                                 feset_ids.remove((None,))
 
-                           query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                           cursor = conn.cursor()
-                           cursor.execute(query5)
-                           fe = cursor.fetchall()
+                             for id4 in feset_ids:
 
-                           feset.append(fe)
+                                 query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                                 cursor = conn.cursor()
+                                 cursor.execute(query5)
+                                 fe = cursor.fetchall()
 
-                           cursor.close()
+                                 feset.append(fe)
 
-                       f_ids=[]
+                                 cursor.close()
 
-                       for id4 in feset_ids:
-                           query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                           cursor = conn.cursor()
-                           cursor.execute(query6)
-                           f = cursor.fetchall()
+                             f_ids=[]
 
-                           for x in f:
-                               f_ids.append(x)
+                             for id4 in feset_ids:
+                                 query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                                 cursor = conn.cursor()
+                                 cursor.execute(query6)
+                                 f = cursor.fetchall()
 
-                           cursor.close()
+                                 for x in f:
+                                     f_ids.append(x)
 
-                       fset_ids=set(f_ids)
+                                 cursor.close()
 
-                       fset=[]
+                             fset_ids=set(f_ids)
 
-                       for id4 in fset_ids:
-                           query7= "SELECT entry FROM frame WHERE idFrame="+str(id4[0])
-                           cursor = conn.cursor()
-                           cursor.execute(query7)
-                           f = cursor.fetchall()
+                             fset=[]
 
-                           for x in f:
-                               fset.append(x)
+                             for id4 in fset_ids:
+                                 query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(id4[0])
+                                 cursor = conn.cursor()
+                                 cursor.execute(query7)
+                                 f = cursor.fetchall()
 
-                           cursor.close()
+                                 for x in f:
+                                     fset.append(x)
 
-                       fset=set(fset)
+                                 cursor.close()
 
-                       for x in fset:
-                           Fset.append(x)
+                             fset=set(fset)
 
-           Fset=set(Fset)
-           Fset=list(Fset)
-                           
-           l.append(Fset)
-           d[icd[0]]=l
-           
-       print(d)   
-       conn.close()
+                             for x in fset:
+                                d={}
+                                d["idFrame"]=x[0]
+                                d["frameEntry"]=x[1]
+                                fn=x[1].split("_")
+                                fn.pop(0)
+                                d["frameName"]="_".join(fn)
+                                textFrames.append(d)
 
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
 
-       query = "SELECT idCorpus from corpus"
+                 doc_ids=[]
 
-       cursor = conn.cursor()
-       cursor.execute(query)
-       crp_ids = cursor.fetchall()
+                 for x in docs:
+                     query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+                 
+                     cursor = conn.cursor()
+                     cursor.execute(query11)
+                     ds = cursor.fetchall()
 
-       cursor.close()
+                     for y in ds:
+                         doc_ids.append(y)
 
-       do={}
+                     cursor.close()
 
-       for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
+                 if len(doc_ids)==0:
+                     continue
 
-           cursor.close()
+                 val=0
 
-           doc_ids=[]
+                 l=[]
+                 Feset=[]
+                 Feset_ids=[]
+                 Fset={}
 
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
+                 for id1 in doc_ids:
+                     
+                     query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                     
+                     cursor = conn.cursor()
+                     cursor.execute(query2)
+                     para_ids = cursor.fetchall()
 
-               for y in ds:
-                   doc_ids.append(y)
+                     cursor.close()
 
-               cursor.close()
+                     for id2 in para_ids:
+                         query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                         
+                         cursor = conn.cursor()
+                         cursor.execute(query3)
+                         sent_ids = cursor.fetchall()
 
-           if len(doc_ids)==0:
-               continue
+                         cursor.close()
 
-           val=0
+                         smm_ids=[]
 
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
+                         for id3 in sent_ids:
 
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
+                             query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query41)
+                             smm = cursor.fetchall()
 
-               cursor.close()
+                             smm_ids.append(smm[0])
 
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
+                             cursor.close()
 
-                   cursor.close()
 
-                   smm_ids=[]
+                         for id3 in smm_ids:
 
-                   for id3 in sent_ids:
+                             query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
 
-                       query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query41)
-                       smm = cursor.fetchall()
+                             cursor = conn.cursor()
+                             cursor.execute(query42)
+                             ann_id = cursor.fetchall()
 
-                       smm_ids.append(smm[0])
+                             cursor.close()
 
-                       cursor.close()
+                             query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query4)
+                             fe_ids = cursor.fetchall()
 
+                             feset_ids= set(fe_ids)
 
-                   for id3 in smm_ids:
+                             cursor.close()
 
-                       query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+                             if (None,) in feset_ids:
+                                 feset_ids.remove((None,))
 
-                       cursor = conn.cursor()
-                       cursor.execute(query42)
-                       ann_id = cursor.fetchall()
+                             
+                             for x in feset_ids:
+                                 Feset_ids.append(x)
 
-                       cursor.close()
+                 Feset_ids=set(Feset_ids)
 
-                       query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
+                 for id4 in Feset_ids:
+                      query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query5)
+                      fe = cursor.fetchall()
 
-                       feset_ids= set(fe_ids)
+                      Feset.append(fe[0])
 
-                       cursor.close()
+                      cursor.close()
+                                 
 
-                       if (None,) in feset_ids:
-                           feset_ids.remove((None,))
+                 Feset_ids=list(Feset_ids)
 
-                       
-                       for x in feset_ids:
-                           Feset_ids.append(x)
+                 d1=dict.fromkeys(Feset_ids)
+                 d2=dict.fromkeys(Feset)
 
-           Feset_ids=set(Feset_ids)
+                 F_ids=[]
 
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
+                 for id4 in Feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
 
-                Feset.append(fe[0])
+                      d1[id4]=f
 
-                cursor.close()
-                           
+                      cursor.close()
 
-           Feset_ids=list(Feset_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2=dict.fromkeys(Feset)
+                      for x in f:
+                          query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query7)
+                          f1 = cursor.fetchall()
 
-           F_ids=[]
 
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
+                          if len(f1)!=0:
+                             for x in f1:
+                                d={}
+                                d["idFrame"]=x[0]
+                                d["frameEntry"]=x[1]
+                                fn=x[1].split("_")
+                                fn.pop(0)
+                                d["frameName"]="_".join(fn)
+                                videoFrames.append(d)
 
-                d1[id4]=f
+                          cursor.close()
 
-                cursor.close()
-
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    if len(f1)!=0:
-                       Fset.append(f1[0])
-
-                    cursor.close()
-
-           Fset=set(Fset)
-           Fset=list(Fset)
-           do[icd[0]]=Fset
-       print("\n")
-       print(do)
-           
+                 data["textFrames"]=textFrames
+                 data["videoFrames"]=videoFrames
+                 djson["data"]=data
             
        conn.close()
 
        with open('report1.json', 'w') as fp:
-          json.dump(d, fp)
+          json.dump(djson, fp, indent=4)
 
-       with open('report1.json', 'a') as fp:
-          json.dump(do, fp)
+       return djson
+       
 
    elif val=="2":
 
-       print("I am here.")
-       
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
+           djson={}
+           djson["reportNumber"]=val
+           djson["reportTitle"]="Report "+val
+           conn = mysql.connector.connect(
+                     host="localhost",
+                     user="root",
+                     password="",
+                     database="test_db"
+                   )
+           v=1
+                   
 
-       d={}
+           query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
 
-       for id1 in doc_ids:
+           cursor = conn.cursor()
+           cursor.execute(query11)
+           d = cursor.fetchall()
+
+           id1=d[0]
+
+           data={}
+           data["idDocument"]=id1[0]
+           data["documentEntry"]=id1[1]
+           n=id1[1].split("_")
+           n.pop(0)
+           data["documentName"]="_".join(n)
+           textFrames=[]
+           videoFrames=[]
 
            l=[]
            Fset=[]
@@ -395,7 +388,7 @@ def getReports(val):
                    f_ids=[]
 
                    for id4 in feset_ids:
-                       query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                       query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                        cursor = conn.cursor()
                        cursor.execute(query6)
                        f = cursor.fetchall()
@@ -410,54 +403,21 @@ def getReports(val):
                    fset=[]
 
                    for id4 in fset_ids:
-                       query7= "SELECT entry FROM frame WHERE idFrame="+str(id4[0])
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(id4[0])
                        cursor = conn.cursor()
                        cursor.execute(query7)
                        f = cursor.fetchall()
 
                        for x in f:
-                           fset.append(x)
+                           d={}
+                           d["idFrame"]=x[0]
+                           d["frameEntry"]=x[1]
+                           fn=x[1].split("_")
+                           fn.pop(0)
+                           d["frameName"]="_".join(fn)
+                           textFrames.append(d)
 
                        cursor.close()
-
-                   fset=set(fset)
-
-                   for x in fset:
-                       Fset.append(x)
-
-           Fset=set(Fset)
-           Fset=list(Fset)
-                       
-           l.append(Fset)
-           d[id1[0]]=l
-
-            
-       print(d)
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
-
-       do={}
-
-       val=0
-
-       for id1 in doc_ids:
 
            l=[]
            Feset=[]
@@ -545,7 +505,7 @@ def getReports(val):
            Fset=[]
 
            for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
@@ -556,31 +516,38 @@ def getReports(val):
 
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
+                    query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
                     cursor = conn.cursor()
                     cursor.execute(query7)
                     f1 = cursor.fetchall()
 
                     if len(f1)!=0:
-                       Fset.append(f1[0])
+                       for x in f1:
+                             d={}
+                             d["idFrame"]=x[0]
+                             d["frameEntry"]=x[1]
+                             fn=x[1].split("_")
+                             fn.pop(0)
+                             d["frameName"]="_".join(fn)
+                             videoFrames.append(d)
 
                     cursor.close()
 
-           Fset=set(Fset)
-           Fset=list(Fset)
-           do[id1[0]]=Fset
-           
-       print("\n")
-       print(do)
-       conn.close()
+                data["textFrames"]=textFrames
+                data["videoFrames"]=videoFrames
+                djson["data"]=data
+            
+           conn.close()
 
-       with open('report2.json', 'w') as fp:
-          json.dump(d, fp)
+           with open('report2.json', 'w') as fp:
+             json.dump(djson, fp, indent=4)
 
-       with open('report2.json', 'a') as fp:
-          json.dump(do, fp)
+           return djson
 
    elif val=="3":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -599,41 +566,38 @@ def getReports(val):
 
        s=[]
        s1=[]
+       data=[]
 
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   s.append(x)
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
+       s1.append((int(Id),))
+       
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
             
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
 
-                   cursor.close()
-                   s1.append(smm[0])
+       cursor.close()
+       s.append(smm[0])
 
        d_buf= dict(zip(s, s1))
        d={}
 
        for id3 in s:
+           query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+           cursor = conn.cursor()
+           cursor.execute(query)
+           txt = cursor.fetchall()
+
+           cursor.close()
+           
+           d1={}
+           d1["idSentence"]=d_buf[id3][0]
+           d1["SentenceText"]=txt[0]
+           textFrames=[]
+           videoFrames=[]
+
+           
            query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
            
            cursor = conn.cursor()
@@ -662,7 +626,7 @@ def getReports(val):
                f_ids=[]
 
            for id4 in feset_ids:
-               query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+               query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                cursor = conn.cursor()
                cursor.execute(query6)
                f = cursor.fetchall()
@@ -677,85 +641,32 @@ def getReports(val):
            fset=[]
 
            for id4 in fset_ids:
-                query7= "SELECT entry FROM frame WHERE idFrame="+str(id4[0])
+                query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query7)
                 f = cursor.fetchall()
 
                 for x in f:
-                    fset.append(x)
+                   d2={}
+                   d2["idFrame"]=x[0]
+                   d2["frameEntry"]=x[1]
+                   fn=x[1].split("_")
+                   fn.pop(0)
+                   d2["frameName"]="_".join(fn)
+                   
+                   textFrames.append(d2)
 
                 cursor.close()
 
-           fset=set(fset)
+           d1["textFrames"]=textFrames
 
-           fset=list(fset)
 
-           l=[]
-           l.append(fset)
-
-           d[d_buf[id3][0]]=l
-       
-       print("\n")
-       print(d)
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       s=[]
-       
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
-            
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   cursor.close()
-                   s.append(smm[0])
-
-       do={}
-       
-       for id3 in s:
-
-           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
 
            cursor = conn.cursor()
            cursor.execute(query42)
            ann_id = cursor.fetchall()
+
 
            cursor.close()
 
@@ -787,53 +698,55 @@ def getReports(val):
 
            feset_ids=list(feset_ids)
 
-           d1=dict.fromkeys(feset_ids)
-           d2=dict.fromkeys(feset)
 
            f_ids=[]
            fset=[]
 
            for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
                 f=set(f)
 
-                d1[id4]=f
-
                 cursor.close()
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
+                    query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
                     cursor = conn.cursor()
                     cursor.execute(query7)
                     f1 = cursor.fetchall()
 
                     if len(f1)!=0:
-                       fset.append(f1[0])
+                       for x in f1:
+                          d2={}
+                          d2["idFrame"]=x[0]
+                          d2["frameEntry"]=x[1]
+                          fn=x[1].split("_")
+                          fn.pop(0)
+                          d2["frameName"]="_".join(fn)
+                         
+                          videoFrames.append(d2)
 
                     cursor.close()
 
-           if len(fset)==0:
-              fset=[]
-           else:
-              fset=set(fset)
+           d1["videoFrames"]=videoFrames
 
-           fset=list(fset)
-           do[id3[0]]=fset
-       print("\n")
-       print(do)
-            
+           data.append(d1)                    
+
        conn.close()
 
-       with open('report3.json', 'w') as fp:
-          json.dump(d, fp)
+       djson["data"]=data
 
-       with open('report3.json', 'a') as fp:
-          json.dump(do, fp)
+       with open('report3.json', 'w') as fp:
+          json.dump(djson, fp, indent=4)
+
+       return djson
 
    elif val=="4":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -842,7 +755,7 @@ def getReports(val):
                 )
        v=1
 
-       query = "SELECT idCorpus from corpus"
+       query = "SELECT idCorpus,entry from corpus"
 
        cursor = conn.cursor()
        cursor.execute(query)
@@ -853,333 +766,340 @@ def getReports(val):
        d={}
 
        for icd in crp_ids:
+
+           if str(icd[0])==Id:
                 
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
+              query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
+              l=[]
+              
+              cursor = conn.cursor()
+              cursor.execute(query1)
+              docs = cursor.fetchall()
 
-           cursor.close()
+              cursor.close()
 
-           doc_ids=[]
+              doc_ids=[]
 
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
+              for x in docs:
+                  query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+              
+                  cursor = conn.cursor()
+                  cursor.execute(query11)
+                  ds = cursor.fetchall()
 
-               for y in ds:
-                   doc_ids.append(y)
+                  for y in ds:
+                      doc_ids.append(y)
 
-               cursor.close()
+                  cursor.close()
 
-           if len(doc_ids)==0:
-               continue
+              if len(doc_ids)==0:
+                  continue
+              else:
+                 data={}
+                 data["idCorpus"]=icd[0]
+                 data["corpusEntry"]=icd[1]
+                 n=icd[1].split("_")
+                 n.pop(0)
+                 data["corpusName"]="_".join(n)
+                 textFramesFE=[]
+                 videoFramesFE=[]
 
-           val=0
+                 val=0
 
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
+                 l=[]
+                 Feset=[]
+                 Feset_ids=[]
+                 Fset=[]
 
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
+                 for id1 in doc_ids:
+                     
+                     query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                     
+                     cursor = conn.cursor()
+                     cursor.execute(query2)
+                     para_ids = cursor.fetchall()
 
-               cursor.close()
+                     cursor.close()
 
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                     for id2 in para_ids:
+                         query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                         
+                         cursor = conn.cursor()
+                         cursor.execute(query3)
+                         sent_ids = cursor.fetchall()
+
+                         cursor.close()
+
+                         for id3 in sent_ids:
+
+                             query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query4)
+                             fe_ids = cursor.fetchall()
+
+                             feset_ids= set(fe_ids)
+
+                             cursor.close()
+
+                             if (None,) in feset_ids:
+                                 feset_ids.remove((None,))
+
+                             
+                             for x in feset_ids:
+                                 Feset_ids.append(x)
+
+                 Feset_ids=set(Feset_ids)
+
+                 for id4 in Feset_ids:
+                      query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query5)
+                      fe = cursor.fetchall()
+
+                      Feset.append(fe[0])
+
+                      cursor.close()
+                                 
+
+                 Feset_ids=list(Feset_ids)
+
+                 d1=dict.fromkeys(Feset_ids)
+                 d2={}
+
+                 F_ids=[]
+
+                 for id4 in Feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
+
+                      d1[id4]=f
+
+                      cursor.close()
+
+                      Fset=[]
+
+                      for x in f:
+                          query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query7)
+                          f1 = cursor.fetchall()
+
+                          Fset.append(f1)
+                          for x in f1:
+                            d={}
+                            d["idFrame"]=x[0]
+                            d["frameEntry"]=x[1]
+                            fn=x[1].split("_")
+                            fn.pop(0)
+                            d["frameName"]="_".join(fn)
+                            fes=[]
+                            query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                            cursor = conn.cursor()
+                            cursor.execute(query71)
+                            fe = cursor.fetchall()
+
+                            for y in fe:
+                               if (y[0],) in Feset_ids:
+                                  d3={}
+                                  d3["idFrameElement"]=y[0]
+                                  d3["frameElementEntry"]=y[1]
+                                  fn1=x[1].split("_")
+                                  fn1.pop(0)
+                                  d3["frameElementName"]="_".join(fn1)
+                                  fes.append(d3)
+
+                            cursor.close()
+                                  
+                            d["fes"]=fes
+                            textFramesFE.append(d)
+
+                          cursor.close()
+
+                      if len(Fset)==0:
+                          d2[Feset[Feset_ids.index(id4)][0]]=[]
+                      else:
+                          d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
+
+                 data["textFramesFE"]=textFramesFE
                    
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
+              
+                 val=0
 
-                   cursor.close()
+                 l=[]
+                 Feset=[]
+                 Feset_ids=[]
+                 Fset=[]
 
-                   for id3 in sent_ids:
+                 for id1 in doc_ids:
+                     
+                     query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                     
+                     cursor = conn.cursor()
+                     cursor.execute(query2)
+                     para_ids = cursor.fetchall()
 
-                       query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
+                     cursor.close()
 
-                       feset_ids= set(fe_ids)
+                     for id2 in para_ids:
+                         query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                         
+                         cursor = conn.cursor()
+                         cursor.execute(query3)
+                         sent_ids = cursor.fetchall()
 
-                       cursor.close()
+                         cursor.close()
 
-                       if (None,) in feset_ids:
-                           feset_ids.remove((None,))
+                         smm_ids=[]
 
-                       
-                       for x in feset_ids:
-                           Feset_ids.append(x)
+                         for id3 in sent_ids:
 
-           Feset_ids=set(Feset_ids)
+                             query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query41)
+                             smm = cursor.fetchall()
 
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
+                             smm_ids.append(smm[0])
 
-                Feset.append(fe[0])
+                             cursor.close()
 
-                cursor.close()
-                           
 
-           Feset_ids=list(Feset_ids)
+                         for id3 in smm_ids:
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
+                             query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
 
-           F_ids=[]
+                             cursor = conn.cursor()
+                             cursor.execute(query42)
+                             ann_id = cursor.fetchall()
 
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
+                             cursor.close()
 
-                d1[id4]=f
+                             query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query4)
+                             fe_ids = cursor.fetchall()
 
-                cursor.close()
+                             feset_ids= set(fe_ids)
 
-                Fset=[]
+                             cursor.close()
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                             if (None,) in feset_ids:
+                                 feset_ids.remove((None,))
 
-                    Fset.append(f1)
+                             
+                             for x in feset_ids:
+                                 Feset_ids.append(x)
 
-                    cursor.close()
+                 Feset_ids=set(Feset_ids)
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
+                 for id4 in Feset_ids:
+                      query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query5)
+                      fe = cursor.fetchall()
 
-           d[icd[0]]=d2
-       print("\n")
-       print(d)
-           
-            
-       conn.close()
+                      Feset.append(fe[0])
 
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
+                      cursor.close()
+                                 
 
-       query = "SELECT idCorpus from corpus"
+                 Feset_ids=list(Feset_ids)
 
-       cursor = conn.cursor()
-       cursor.execute(query)
-       crp_ids = cursor.fetchall()
+                 F_ids=[]
 
-       cursor.close()
+                 for id4 in Feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
 
-       do={}
 
-       for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
+                      cursor.close()
 
-           cursor.close()
+                      Fset=[]
 
-           doc_ids=[]
-
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
-
-               for y in ds:
-                   doc_ids.append(y)
-
-               cursor.close()
-
-           if len(doc_ids)==0:
-               continue
-
-           val=0
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
-
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
-
-                   cursor.close()
-
-                   smm_ids=[]
-
-                   for id3 in sent_ids:
-
-                       query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query41)
-                       smm = cursor.fetchall()
-
-                       smm_ids.append(smm[0])
-
-                       cursor.close()
-
-
-                   for id3 in smm_ids:
-
-                       query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-                       cursor = conn.cursor()
-                       cursor.execute(query42)
-                       ann_id = cursor.fetchall()
-
-                       cursor.close()
-
-                       query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
-
-                       feset_ids= set(fe_ids)
-
-                       cursor.close()
-
-                       if (None,) in feset_ids:
-                           feset_ids.remove((None,))
-
-                       
-                       for x in feset_ids:
-                           Feset_ids.append(x)
-
-           Feset_ids=set(Feset_ids)
-
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
-
-                Feset.append(fe[0])
-
-                cursor.close()
-                           
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
-           do[icd[0]]=d2
-       print("\n")
-       print(do)
-           
+                      for x1 in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x1[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
+
+                             Fset.append(f1)
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               fes=[]
+                               query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query71)
+                               fe = cursor.fetchall()
+
+                               for y in fe:
+                                  if (y[0],) in Feset_ids:
+                                     d3={}
+                                     d3["idFrameElement"]=y[0]
+                                     d3["frameElementEntry"]=y[1]
+                                     fn1=x[1].split("_")
+                                     fn1.pop(0)
+                                     d3["frameElementName"]="_".join(fn1)
+                                     fes.append(d3)
+
+                               cursor.close()
+                                     
+                               d["fes"]=fes
+                               videoFramesFE.append(d)
+                      
+                 data["videoFramesFE"]=videoFramesFE
+                 djson["data"]=data
             
        conn.close()
 
        with open('report4.json', 'w') as fp:
-          json.dump(d, fp)
+          json.dump(djson, fp, indent=4)
 
-       with open('report4.json', 'a') as fp:
-          json.dump(do, fp)
+       return djson
+
 
 
    elif val=="5":
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
+           djson={}
+           djson["reportNumber"]=val
+           djson["reportTitle"]="Report "+val
+           conn = mysql.connector.connect(
+                     host="localhost",
+                     user="root",
+                     password="",
+                     database="test_db"
+                   )
+           v=1
                 
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
 
-       d={}
+           query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
 
-       val=0
+           cursor = conn.cursor()
+           cursor.execute(query11)
+           d = cursor.fetchall()
 
-       for id1 in doc_ids:
+           id1=d[0]
 
-           l=[]
-           Feset=[]
+           data={}
+           data["idDocument"]=id1[0]
+           data["documentEntry"]=id1[1]
+           n=id1[1].split("_")
+           n.pop(0)
+           data["documentName"]="_".join(n)
+           textFramesFE=[]
+           videoFramesFE=[]
            Feset_ids=[]
-           Fset=[]
+           Feset=[]
            
            query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
            
@@ -1232,67 +1152,60 @@ def getReports(val):
 
            Feset_ids=list(Feset_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
            F_ids=[]
 
            for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 Fset=[]
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    Fset.append(f1)
+                       Fset.append(f1)
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
 
-                    cursor.close()
+                         for y in fe:
+                            if (y[0],) in Feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               fes.append(d3)
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         textFramesFE.append(d)
 
-           d[id1[0]]=d2
-       print("\n")
-       print(d)
+                       cursor.close()
+                   
+                    
+
+           data["textFramesFE"]=textFramesFE
             
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-                
-       query1 = "SELECT idDocument from documentmm"
        
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
-
-       do={}
-
-       val=0
-
-       for id1 in doc_ids:
-
            l=[]
            Feset=[]
            Feset_ids=[]
@@ -1372,50 +1285,73 @@ def getReports(val):
 
            Feset_ids=list(Feset_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
 
            F_ids=[]
 
            for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
 
-                d1[id4]=f
 
                 cursor.close()
 
                 Fset=[]
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                for x1 in f:
+                          query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x1[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query7)
+                          f1 = cursor.fetchall()
 
-                    Fset.append(f1)
+                          Fset.append(f1)
+                          for x in f1:
+                            d={}
+                            d["idFrame"]=x[0]
+                            d["frameEntry"]=x[1]
+                            fn=x[1].split("_")
+                            fn.pop(0)
+                            d["frameName"]="_".join(fn)
+                            fes=[]
+                            query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                            cursor = conn.cursor()
+                            cursor.execute(query71)
+                            fe = cursor.fetchall()
 
-                    cursor.close()
+                            for y in fe:
+                               if (y[0],) in Feset_ids:
+                                  d3={}
+                                  d3["idFrameElement"]=y[0]
+                                  d3["frameElementEntry"]=y[1]
+                                  fn1=x[1].split("_")
+                                  fn1.pop(0)
+                                  d3["frameElementName"]="_".join(fn1)
+                                  fes.append(d3)
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
-           do[id1[0]]=d2
-           
-       print("\n")
-       print(do)
-       conn.close()
+                            cursor.close()
+                                  
+                            d["fes"]=fes
+                            videoFramesFE.append(d)
 
-       with open('report5.json', 'w') as fp:
-          json.dump(d, fp)
+           data["videoFramesFE"]=videoFramesFE
 
-       with open('report5.json', 'a') as fp:
-          json.dump(do, fp)
+      
+           conn.close()
+
+           djson["data"]=data
+
+           with open('report5.json', 'w') as fp:
+              json.dump(djson, fp, indent=4)
+
+           return djson
+
 
    elif val=="6":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+       
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -1431,11 +1367,561 @@ def getReports(val):
        doc_ids = cursor.fetchall()
        s=[]
        s1=[]
+       data=[]
        
        cursor.close()
 
-       for id1 in doc_ids:
+       s1.append((int(Id),))
+       
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
+            
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
+
+       cursor.close()
+       s.append(smm[0])
+
+       d_buf= dict(zip(s, s1))
+       d={}
+
+       for id3 in s:
+           query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+           cursor = conn.cursor()
+           cursor.execute(query)
+           txt = cursor.fetchall()
+
+           cursor.close()
            
+           d1={}
+           d1["idSentence"]=d_buf[id3][0]
+           d1["SentenceText"]=txt[0]
+           textFramesFE=[]
+           videoFramesFE=[]
+           query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+            
+           cursor = conn.cursor()
+           cursor.execute(query4)
+           fe_ids = cursor.fetchall()
+
+           feset_ids= set(fe_ids)
+
+           cursor.close()
+
+           feset=[]
+
+           if (None,) in feset_ids:
+               feset_ids.remove((None,))
+
+           for id4 in feset_ids:
+               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+               cursor = conn.cursor()
+               cursor.execute(query5)
+               fe = cursor.fetchall()
+
+               feset.append(fe[0])
+
+               cursor.close()
+
+           feset_ids=list(feset_ids)
+
+
+           f_ids=[]
+           fset=[]
+
+           for id4 in feset_ids:
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                cursor = conn.cursor()
+                cursor.execute(query6)
+                f = cursor.fetchall()
+
+                cursor.close()
+
+                fset=[]
+
+                for x in f:
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
+
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
+
+                         for y in fe:
+                            if (y[0],) in feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               fes.append(d3)
+
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         textFramesFE.append(d)
+
+                       cursor.close()
+
+           d1["textFramesFE"]=textFramesFE      
+            
+
+           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
+
+           cursor = conn.cursor()
+           cursor.execute(query42)
+           ann_id = cursor.fetchall()
+
+           cursor.close()
+
+           query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+            
+           cursor = conn.cursor()
+           cursor.execute(query4)
+           fe_ids = cursor.fetchall()
+
+           feset_ids= set(fe_ids)
+
+           cursor.close()
+
+           feset=[]
+
+           if (None,) in feset_ids:
+               feset_ids.remove((None,))
+
+           for id4 in feset_ids:
+               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+               cursor = conn.cursor()
+               cursor.execute(query5)
+               fe = cursor.fetchall()
+
+               feset.append(fe[0])
+
+               cursor.close()
+
+           feset_ids=list(feset_ids)
+
+           f_ids=[]
+           fset=[]
+
+           for id4 in feset_ids:
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                cursor = conn.cursor()
+                cursor.execute(query6)
+                f = cursor.fetchall()
+
+                cursor.close()
+
+                fset=[]
+
+                for x in f:
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
+
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
+
+                         for y in fe:
+                            if (y[0],) in feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               fes.append(d3)
+
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         videoFramesFE.append(d)
+
+                       cursor.close()
+
+           d1["videoFramesFE"]=videoFramesFE
+           data.append(d1)
+     
+       conn.close()
+       djson["data"]=data
+
+       with open('report6.json', 'w') as fp:
+          json.dump(djson, fp, indent=4)
+
+       return djson
+
+
+   elif val=="7":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+
+       
+       conn = mysql.connector.connect(
+                  host="localhost",
+                  user="root",
+                  password="",
+                  database="test_db"
+                )
+       v=1
+       query = "SELECT idCorpus,entry from corpus"
+
+       cursor = conn.cursor()
+       cursor.execute(query)
+       crp_ids = cursor.fetchall()
+
+       cursor.close()
+
+           
+       for icd in crp_ids:
+          
+           if str(icd[0])==Id:
+              query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
+              l=[]
+              
+              cursor = conn.cursor()
+              cursor.execute(query1)
+              docs = cursor.fetchall()
+
+              cursor.close()
+
+              doc_ids=[]
+
+              for x in docs:
+                  query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+              
+                  cursor = conn.cursor()
+                  cursor.execute(query11)
+                  ds = cursor.fetchall()
+
+                  for y in ds:
+                      doc_ids.append(y)
+
+                  cursor.close()
+
+              if len(doc_ids)==0:
+                  continue
+              else:
+                 data={}
+                 data["idCorpus"]=icd[0]
+                 data["corpusEntry"]=icd[1]
+                 n=icd[1].split("_")
+                 n.pop(0)
+                 data["corpusName"]="_".join(n)
+                 textFrames=[]
+                 videoFrames=[]
+                 docs=[]
+                 
+
+                 for x in doc_ids:
+                   query11= "SELECT idDocument,entry from document WHERE idDocument="+str(x[0])
+
+                   cursor = conn.cursor()
+                   cursor.execute(query11)
+                   d = cursor.fetchall()
+
+                   for y in d:
+                      docs.append(y)
+                
+                   cursor.close()
+
+                 for id1 in docs:
+                   
+                    s=[]
+                    s1=[]
+                    query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                    
+                    cursor = conn.cursor()
+                    cursor.execute(query2)
+                    para_ids = cursor.fetchall()
+
+                    cursor.close()
+
+                    for id2 in para_ids:
+                        query3= "SELECT idSentence,text from sentence where idParagraph="+str(id2[0])
+                        
+                        cursor = conn.cursor()
+                        cursor.execute(query3)
+                        sent_ids = cursor.fetchall()
+
+                        cursor.close()
+
+                        for x in sent_ids:
+                            s.append(x)
+
+                            query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
+                     
+                            cursor = conn.cursor()
+                            cursor.execute(query41)
+                            smm = cursor.fetchall()
+
+                            cursor.close()
+                            s1.append(smm[0])
+
+                    d_buf= dict(zip(s, s1))
+
+                    for id3 in s:
+                          query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                           
+                          cursor = conn.cursor()
+                          cursor.execute(query4)
+                          fe_ids = cursor.fetchall()
+
+                          feset_ids= set(fe_ids)
+
+                          cursor.close()
+
+                          feset=[]
+
+                          if (None,) in feset_ids:
+                              feset_ids.remove((None,))
+
+                          for id4 in feset_ids:
+                              query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                              cursor = conn.cursor()
+                              cursor.execute(query5)
+                              fe = cursor.fetchall()
+
+                              feset.append(fe[0])
+
+                              cursor.close()
+
+                          feset_ids=list(feset_ids)
+
+
+                          f_ids=[]
+                          fset=[]
+
+                          query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query41)
+                          ts = cursor.fetchall()
+
+                          x=ts[0]
+                                       
+                          hms=x[0].split(":")
+                                        
+                          h=int(hms[0])
+                          m=int(hms[1])
+                          sl=hms[2].split(".")
+                          secs=int(sl[0])+int(sl[1])/100
+                          t1=h*3600+m*60+secs
+                                        
+                                        
+                          hms=x[1].split(":")
+                          h=int(hms[0])
+                          m=int(hms[1])
+                          sl=hms[2].split(".")
+                          secs=int(sl[0])+int(sl[1])/100
+                          t2=h*3600+m*60+secs
+
+                          for id4 in feset_ids:
+                               query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query6)
+                               f = cursor.fetchall()
+
+                               cursor.close()
+
+                               fset=[]
+
+                               for x in f:
+                                      query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                                      cursor = conn.cursor()
+                                      cursor.execute(query7)
+                                      f1 = cursor.fetchall()
+
+                                      
+                                      for x in f1:
+                                        d={}
+                                        d["idFrame"]=x[0]
+                                        d["frameEntry"]=x[1]
+                                        fn=x[1].split("_")
+                                        fn.pop(0)
+                                        d["frameName"]="_".join(fn)
+                                        d["startTime"]=t1
+                                        d["endTime"]=t2
+
+                                        cursor.close()
+
+                                        textFrames.append(d)
+
+                                      cursor.close()     
+                           
+
+                          query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
+
+                          cursor = conn.cursor()
+                          cursor.execute(query42)
+                          ann_id = cursor.fetchall()
+
+                          cursor.close()
+
+                          query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                           
+                          cursor = conn.cursor()
+                          cursor.execute(query4)
+                          fe_ids = cursor.fetchall()
+
+                          feset_ids= set(fe_ids)
+
+                          cursor.close()
+
+                          feset=[]
+
+                          if (None,) in feset_ids:
+                              feset_ids.remove((None,))
+
+                          for id4 in feset_ids:
+                              query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                              cursor = conn.cursor()
+                              cursor.execute(query5)
+                              fe = cursor.fetchall()
+
+                              feset.append(fe[0])
+
+                              cursor.close()
+
+                          feset_ids=list(feset_ids)
+
+                          f_ids=[]
+                          fset=[]
+                          start=[]
+                          end=[]
+
+                          query41= "SELECT startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                          cursor = conn.cursor()
+                          cursor.execute(query41)
+                          ts = cursor.fetchall()
+
+                          for x in ts:
+                             start.append(x[0])
+                             end.append(x[1])
+
+                          cursor.close()
+
+                          for id4 in feset_ids:
+                               query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query6)
+                               f = cursor.fetchall()
+
+                               cursor.close()
+
+                               fset=[]
+
+                               for x in f:
+                                      query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                                      cursor = conn.cursor()
+                                      cursor.execute(query7)
+                                      f1 = cursor.fetchall()
+
+                                      
+                                      for x in f1:
+                                        d={}
+                                        d["idFrame"]=x[0]
+                                        d["frameEntry"]=x[1]
+                                        fn=x[1].split("_")
+                                        fn.pop(0)
+                                        d["frameName"]="_".join(fn)
+                                        d["startTime"]=start[fe_ids.index(id4)]*0.033
+                                        d["endTime"]=end[fe_ids.index(id4)]*0.033
+                                        
+
+                                        cursor.close()
+                                              
+                                        videoFrames.append(d)
+
+                                      cursor.close()
+
+                 data["textFrames"]=textFrames
+                 data["videoFrames"]=videoFrames
+                 djson["data"]=data
+     
+       conn.close()
+
+
+       with open('report7.json', 'w') as fp:
+          json.dump(djson, fp, indent=4)
+
+       return djson
+       
+
+
+   elif val=="8":
+           djson={}
+           djson["reportNumber"]=val
+           djson["reportTitle"]="Report "+val
+
+          
+           conn = mysql.connector.connect(
+                     host="localhost",
+                     user="root",
+                     password="",
+                     database="test_db"
+                   )
+           v=1
+                   
+           query1 = "SELECT idDocument from documentmm"
+          
+           cursor = conn.cursor()
+           cursor.execute(query1)
+           doc_ids = cursor.fetchall()
+          
+           cursor.close()
+           docs=[]
+
+
+           query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
+
+           cursor = conn.cursor()
+           cursor.execute(query11)
+           d = cursor.fetchall()
+
+           id1=d[0]
+
+           data={}
+           data["idDocument"]=id1[0]
+           data["documentEntry"]=id1[1]
+           n=id1[1].split("_")
+           n.pop(0)
+           data["documentName"]="_".join(n)
+           textFrames=[]
+           videoFrames=[]
+           Feset_ids=[]
+           Feset=[]
+          
+           s=[]
+           s1=[]
            query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
            
            cursor = conn.cursor()
@@ -1445,7 +1931,7 @@ def getReports(val):
            cursor.close()
 
            for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+               query3= "SELECT idSentence,text from sentence where idParagraph="+str(id2[0])
                
                cursor = conn.cursor()
                cursor.execute(query3)
@@ -1465,901 +1951,197 @@ def getReports(val):
                    cursor.close()
                    s1.append(smm[0])
 
-       d_buf= dict(zip(s, s1))
-       d={}
-
-       for id3 in s:
-           query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-            
-           cursor = conn.cursor()
-           cursor.execute(query4)
-           fe_ids = cursor.fetchall()
-
-           feset_ids= set(fe_ids)
-
-           cursor.close()
-
-           feset=[]
-
-           if (None,) in feset_ids:
-               feset_ids.remove((None,))
-
-           for id4 in feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               feset.append(fe[0])
-
-               cursor.close()
-
-           feset_ids=list(feset_ids)
-
-           d1=dict.fromkeys(feset_ids)
-           d2={}
-
-           f_ids=[]
-           fset=[]
-
-           for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    fset.append(f1)
-
-                    cursor.close()
-
-                if len(fset)==0:
-                    d2[feset[feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[feset[feset_ids.index(id4)][0]]=fset[0]
-
-           d[d_buf[id3][0]]=d2
-       print("\n")
-       print(d)
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       s=[]
-       
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
-            
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   cursor.close()
-                   s.append(smm[0])
-
-       do={}
-
-       for id3 in s:
-
-           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-           cursor = conn.cursor()
-           cursor.execute(query42)
-           ann_id = cursor.fetchall()
-
-           cursor.close()
-
-           query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-
-            
-           cursor = conn.cursor()
-           cursor.execute(query4)
-           fe_ids = cursor.fetchall()
-
-           feset_ids= set(fe_ids)
-
-           cursor.close()
-
-           feset=[]
-
-           if (None,) in feset_ids:
-               feset_ids.remove((None,))
-
-           for id4 in feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               feset.append(fe[0])
-
-               cursor.close()
-
-           feset_ids=list(feset_ids)
-
-           d1=dict.fromkeys(feset_ids)
-           d2={}
-
-           f_ids=[]
-           fset=[]
-
-           for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    fset.append(f1)
-
-                    cursor.close()
-
-                if len(fset)==0:
-                    d2[feset[feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[feset[feset_ids.index(id4)][0]]=fset[0]
-
-           do[id3[0]]=d2
-       print("\n")
-       print(do)
-            
-       conn.close()
-
-       with open('report6.json', 'w') as fp:
-          json.dump(d, fp)
-
-       with open('report6.json', 'a') as fp:
-          json.dump(do, fp)
-
-   elif val=="7":
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-       query = "SELECT idCorpus from corpus"
-
-       cursor = conn.cursor()
-       cursor.execute(query)
-       crp_ids = cursor.fetchall()
-
-       cursor.close()
-
-       d={}
-
-       for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
-
-           cursor.close()
-
-           doc_ids=[]
-
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
-
-               for y in ds:
-                   doc_ids.append(y)
-
-               cursor.close()
-
-           if len(doc_ids)==0:
-               continue
-
-           val=0
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
-
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
-
-                   cursor.close()
-
-                   for id3 in sent_ids:
-                      query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
-                
+           d_buf= dict(zip(s, s1))
+
+           for id3 in s:
+                 query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                  
+                 cursor = conn.cursor()
+                 cursor.execute(query4)
+                 fe_ids = cursor.fetchall()
+
+                 feset_ids= set(fe_ids)
+
+                 cursor.close()
+
+                 feset=[]
+
+                 if (None,) in feset_ids:
+                     feset_ids.remove((None,))
+
+                 for id4 in feset_ids:
+                     query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                     cursor = conn.cursor()
+                     cursor.execute(query5)
+                     fe = cursor.fetchall()
+
+                     feset.append(fe[0])
+
+                     cursor.close()
+
+                 feset_ids=list(feset_ids)
+
+
+                 f_ids=[]
+                 fset=[]
+
+                 query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
+                 cursor = conn.cursor()
+                 cursor.execute(query41)
+                 ts = cursor.fetchall()
+
+                 x=ts[0]
+                              
+                 hms=x[0].split(":")
+                               
+                 h=int(hms[0])
+                 m=int(hms[1])
+                 sl=hms[2].split(".")
+                 secs=int(sl[0])+int(sl[1])/100
+                 t1=h*3600+m*60+secs
+                               
+                               
+                 hms=x[1].split(":")
+                 h=int(hms[0])
+                 m=int(hms[1])
+                 sl=hms[2].split(".")
+                 secs=int(sl[0])+int(sl[1])/100
+                 t2=h*3600+m*60+secs
+
+                 for id4 in feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                       cursor = conn.cursor()
-                      cursor.execute(query41)
-                      smm = cursor.fetchall()
-
-                      x=smm[0]
-                        
-                      hms=x[0].split(":")
-                         
-                      h=int(hms[0])
-                      m=int(hms[1])
-                      sl=hms[2].split(".")
-                      s=int(sl[0])+int(sl[1])/100
-                      t1=h*3600+m*60+s
-                         
-                         
-                      hms=x[1].split(":")
-                      h=int(hms[0])
-                      m=int(hms[1])
-                      sl=hms[2].split(".")
-                      s=int(sl[0])+int(sl[1])/100
-                      t2=h*3600+m*60+s
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
 
                       cursor.close()
-                      
 
-                      query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
+                      fset=[]
+
+                      for x in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
+
+                             
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               d["startTime"]=t1
+                               d["endTime"]=t2
+
+                               textFrames.append(d)
+
+                             cursor.close()     
+                  
+
+                 query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
+
+                 cursor = conn.cursor()
+                 cursor.execute(query42)
+                 ann_id = cursor.fetchall()
+
+                 cursor.close()
+
+                 query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                  
+                 cursor = conn.cursor()
+                 cursor.execute(query4)
+                 fe_ids = cursor.fetchall()
+
+                 feset_ids= set(fe_ids)
+
+                 cursor.close()
+
+                 feset=[]
+
+                 if (None,) in feset_ids:
+                     feset_ids.remove((None,))
+
+                 for id4 in feset_ids:
+                     query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                     cursor = conn.cursor()
+                     cursor.execute(query5)
+                     fe = cursor.fetchall()
+
+                     feset.append(fe[0])
+
+                     cursor.close()
+
+                 feset_ids=list(feset_ids)
+
+                 f_ids=[]
+                 fset=[]
+                 start=[]
+                 end=[]
+
+                 query41= "SELECT startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                 cursor = conn.cursor()
+                 cursor.execute(query41)
+                 ts = cursor.fetchall()
+
+                 for x in ts:
+                    start.append(x[0])
+                    end.append(x[1])
+
+                 cursor.close()
+
+                 for id4 in feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                       cursor = conn.cursor()
-                      cursor.execute(query4)
-                      fe_ids = cursor.fetchall()
-
-
-                      fes=[value for value in fe_ids if value != (None,)]
-
-                       
-                      for x in fes:
-                           Feset_ids.append(x)
-                           start.append(t1)
-                           end.append(t2)
-
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
-
-                Feset.append(fe[0])
-
-                cursor.close()
-                           
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-
-           d[icd[0]]=d2
-           
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-       query = "SELECT idCorpus from corpus"
-
-       cursor = conn.cursor()
-       cursor.execute(query)
-       crp_ids = cursor.fetchall()
-
-       cursor.close()
-
-       do={}
-
-       for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
-
-           cursor.close()
-
-           doc_ids=[]
-
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
-
-               for y in ds:
-                   doc_ids.append(y)
-
-               cursor.close()
-
-           if len(doc_ids)==0:
-               continue
-
-           val=0
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           start=[]
-           end=[]
-           Fset=[]
-
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
-
-                   cursor.close()
-
-                   smm_ids=[]
-
-                   for id3 in sent_ids:
-
-                       query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query41)
-                       smm = cursor.fetchall()
-
-                       smm_ids.append(smm[0])
-
-                       cursor.close()
-
-
-                   for id3 in smm_ids:
-
-                       query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-                       cursor = conn.cursor()
-                       cursor.execute(query42)
-                       ann_id = cursor.fetchall()
-
-                       cursor.close()
-
-                       query4= "SELECT idFrameElement,startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
-
-                       cursor.close()
-
-                       
-                       for x in fe_ids:
-                           Feset_ids.append(x[0])
-
-                       for x in fe_ids:
-                          start.append(x[1]*0.033)
-                          end.append(x[2]*0.033)
-
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
-
-                Feset.append(fe[0])
-
-                cursor.close()
-                           
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-           do[icd]=d2
-           
-       conn.close()
-
-       l=list(d.values())
-       l1=list(do.values())
-       x=l[0]
-       y=l1[0]
-       lx=list(x.keys())
-       ly=list(y.keys())
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
+
+                      cursor.close()
+
+                      fset=[]
+
+                      for x in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
+
+                             
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               d["startTime"]=start[fe_ids.index(id4)]*0.033
+                               d["endTime"]=end[fe_ids.index(id4)]*0.033
+
+                               videoFrames.append(d)
+
+                             cursor.close()
+
+           data["textFrames"]=textFrames
+           data["videoFrames"]=videoFrames
+     
+           conn.close()
+           djson["data"]=data
+
+           with open('report8.json', 'w') as fp:
+             json.dump(djson, fp, indent=4)
+
+           return djson
        
-       k=list(do.keys())
-       dmain={}
-       lfr=[]
-       for a_fe in lx:
-          if x[a_fe][0] not in lfr:
-             lfr.append(x[a_fe][0])
-
-       lfr.remove('')
-       lfr.remove([])
-
-       lr=[]
-       for z in lfr:
-          lr.append(z[0][0])
-
-
-       df=dict.fromkeys(lr)
-
-       for z in df.keys():
-          df[z]=[]
-
-       for a_fe in lx:
-          if a_fe in ly:
-             for fr in lr:
-                il=[]
-                il.append((fr,))
-                if '' not in x[a_fe]:
-                   if il in x[a_fe]:
-                      df[fr].append([[x[a_fe][1],x[a_fe][2]],[y[a_fe][1],y[a_fe][2]]])
-
-       dmain[k[0][0]]=df
-       print(dmain)
-
-       with open('report7.json', 'w') as fp:
-          json.dump(dmain, fp)
-
-
-   elif val=="8":
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
-
-       d={}
-
-       val=0
-
-       for id1 in doc_ids:
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id3 in sent_ids:
-                  query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
-                  cursor = conn.cursor()
-                  cursor.execute(query41)
-                  smm = cursor.fetchall()
-
-                  x=smm[0]
-                        
-                  hms=x[0].split(":")
-                         
-                  h=int(hms[0])
-                  m=int(hms[1])
-                  sl=hms[2].split(".")
-                  s=int(sl[0])+int(sl[1])/100
-                  t1=h*3600+m*60+s
-                         
-                         
-                  hms=x[1].split(":")
-                  h=int(hms[0])
-                  m=int(hms[1])
-                  sl=hms[2].split(".")
-                  s=int(sl[0])+int(sl[1])/100
-                  t2=h*3600+m*60+s
-
-                  cursor.close()
-                      
-
-                  query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
-                  cursor = conn.cursor()
-                  cursor.execute(query4)
-                  fe_ids = cursor.fetchall()
-
-
-                  fes=[value for value in fe_ids if value != (None,)]
-
-                       
-                  for x in fes:
-                     Feset_ids.append(x)
-                     start.append(t1)
-                     end.append(t2)
-
-           Feset_ids=set(Feset_ids)
-
-           for id4 in Feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               Feset.append(fe[0])
-
-               cursor.close()
-                       
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-
-           d[id1[0]]=d2
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
-
-       do={}
-
-       val=0
-
-       for id1 in doc_ids:
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               smm_ids=[]
-
-               for id3 in sent_ids:
-
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-            
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   smm_ids.append(smm[0])
-
-                   cursor.close()
-
-
-               for id3 in smm_ids:
-                  query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-                  cursor = conn.cursor()
-                  cursor.execute(query42)
-                  ann_id = cursor.fetchall()
-
-                  cursor.close()
-
-                  query4= "SELECT idFrameElement,startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                  cursor = conn.cursor()
-                  cursor.execute(query4)
-                  fe_ids = cursor.fetchall()
-
-                  cursor.close()
-
-                       
-                  for x in fe_ids:
-                     Feset_ids.append(x[0])
-
-                  for x in fe_ids:
-                     start.append(x[1]*0.033)
-                     end.append(x[2]*0.033)
-
-           Feset_ids=set(Feset_ids)
-
-           for id4 in Feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4)
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               Feset.append(fe[0])
-
-               cursor.close()
-                       
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-           do[id1[0]]=d2
-           
-       conn.close()
-
-       l=list(d.values())
-       l1=list(do.values())
-       x=l[0]
-       y=l1[0]
-       lx=list(x.keys())
-       ly=list(y.keys())
-       
-       k=list(do.keys())
-       dmain={}
-       lfr=[]
-       for a_fe in lx:
-          if x[a_fe][0] not in lfr:
-             lfr.append(x[a_fe][0])
-
-       lfr.remove('')
-       lfr.remove([])
-
-       lr=[]
-       for z in lfr:
-          lr.append(z[0][0])
-
-
-       df=dict.fromkeys(lr)
-
-       for z in df.keys():
-          df[z]=[]
-
-       for a_fe in lx:
-          if a_fe in ly:
-             for fr in lr:
-                il=[]
-                il.append((fr,))
-                if '' not in x[a_fe]:
-                   if il in x[a_fe]:
-                      df[fr].append([[x[a_fe][1],x[a_fe][2]],[y[a_fe][1],y[a_fe][2]]])
-
-       dmain[k[0]]=df
-       print(dmain)
-       with open('report8.json', 'w') as fp:
-          json.dump(dmain, fp)
 
 
    elif val=="9":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+       
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -2375,47 +2157,39 @@ def getReports(val):
        doc_ids = cursor.fetchall()
        s=[]
        s1=[]
+       data=[]
        
        cursor.close()
 
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
+       s1.append((int(Id),))
+       
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
+            
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
 
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for y in sent_ids:
-                   s.append(y)
-
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(y[0])
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   cursor.close()
-                   s1.append(smm[0])
-                   
+       cursor.close()
+       s.append(smm[0])
 
        d_buf= dict(zip(s, s1))
        d={}
 
        for id3 in s:
 
-           smm=d_buf[id3]
+           query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+           cursor = conn.cursor()
+           cursor.execute(query)
+           txt = cursor.fetchall()
+
+           cursor.close()
            
+           d1={}
+           d1["idSentence"]=d_buf[id3][0]
+           d1["SentenceText"]=txt[0]
+           textFramesFE=[]
+           videoFramesFE=[]
            query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
             
            cursor = conn.cursor()
@@ -2443,8 +2217,6 @@ def getReports(val):
 
            feset_ids=list(feset_ids)
 
-           d1=dict.fromkeys(feset_ids)
-           d2={}
 
            f_ids=[]
            fset=[]
@@ -2473,88 +2245,42 @@ def getReports(val):
            t2=h*3600+m*60+secs
 
            for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 fset=[]
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    fset.append(f1)
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         d["startTime"]=t1
+                         d["endTime"]=t2
 
-                    cursor.close()
+                         cursor.close()
+                               
+                         textFramesFE.append(d)
 
-                if len(fset)==0:
-                    d2[feset[feset_ids.index(id4)][0]]=[[],t1,t2]
-                else:
-                    d2[feset[feset_ids.index(id4)][0]]=[fset[0],t1,t2]
+                       cursor.close()
 
-           d[d_buf[id3][0]]=d2
+           d1["textFramesFE"]=textFramesFE      
             
-       conn.close()
 
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       s=[]
-       
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
-            
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   cursor.close()
-                   s.append(smm[0])
-
-       do={}
-
-
-       for id3 in s:
-
-           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
 
            cursor = conn.cursor()
            cursor.execute(query42)
@@ -2564,18 +2290,21 @@ def getReports(val):
 
            query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
 
+            
            cursor = conn.cursor()
            cursor.execute(query4)
            fe_ids = cursor.fetchall()
 
+           feset_ids= set(fe_ids)
 
            cursor.close()
 
            feset=[]
 
-           
+           if (None,) in feset_ids:
+               feset_ids.remove((None,))
 
-           for id4 in fe_ids:
+           for id4 in feset_ids:
                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
                cursor = conn.cursor()
                cursor.execute(query5)
@@ -2585,10 +2314,7 @@ def getReports(val):
 
                cursor.close()
 
-           fe_ids=list(fe_ids)
-
-           d1=dict.fromkeys(fe_ids)
-           d2={}
+           feset_ids=list(feset_ids)
 
            f_ids=[]
            fset=[]
@@ -2607,81 +2333,55 @@ def getReports(val):
 
            cursor.close()
 
-           for id4 in fe_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+           for id4 in feset_ids:
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 fset=[]
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    fset.append(f1)
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         d["startTime"]=start[fe_ids.index(id4)]*0.033
+                         d["endTime"]=end[fe_ids.index(id4)]*0.033
+                         
+                         videoFramesFE.append(d)
 
-                    cursor.close()
+                       cursor.close()
 
-                if len(fset)==0:
-                    d2[feset[fe_ids.index(id4)][0]]=[[],start[fe_ids.index(id4)]*0.033,end[fe_ids.index(id4)]*0.033]
-                else:
-                    d2[feset[fe_ids.index(id4)][0]]=[fset[0],start[fe_ids.index(id4)]*0.033,end[fe_ids.index(id4)]*0.033]
-
-           do[id3[0]]=d2
-            
+           d1["videoFramesFE"]=videoFramesFE
+           data.append(d1)
+     
        conn.close()
+       djson["data"]=data
 
-       l=list(d.values())
-       l1=list(do.values())
-
-       df=[]
-
-       for x in l:
-          lx=list(x.keys())
-          y=l1[l.index(x)]
-          ly=list(y.keys())
-
-
-          lfr=[]
-          for z in lx:
-             if z in ly:
-                if x[z][0] not in lfr:
-                   lfr.append(x[z][0])
-
-          if [] in lfr:
-             lfr.remove([])
-
-          lr=[]
-          for z in lfr:
-             lr.append(z[0][0])
-
-          fd=dict.fromkeys(lr)
-          for f in fd.keys():
-             fd[f]=[]
-
-             
-          for z in lx:
-             if z in ly:
-                if x[z][0] in lfr:
-                   a=x[z][0]
-                   fd[a[0][0]].append([[x[z][1],x[z][2]],[y[z][1],y[z][2]]])
-          df.append(fd)
-       
-       dmain=dict(zip(list(do.keys()),df))
-          
-       print(dmain)
        with open('report9.json', 'w') as fp:
-          json.dump(dmain, fp)
+          json.dump(djson, fp, indent=4)
+
+       return djson
 
 
    elif val=="10":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+
+       
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -2689,8 +2389,7 @@ def getReports(val):
                   database="test_db"
                 )
        v=1
-
-       query = "SELECT idCorpus from corpus"
+       query = "SELECT idCorpus,entry from corpus"
 
        cursor = conn.cursor()
        cursor.execute(query)
@@ -2698,508 +2397,349 @@ def getReports(val):
 
        cursor.close()
 
-       d={}
-
+           
        for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
+           if str(icd[0])==Id:
 
-           cursor.close()
+              query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
+              l=[]
+              
+              cursor = conn.cursor()
+              cursor.execute(query1)
+              docs = cursor.fetchall()
 
-           doc_ids=[]
+              cursor.close()
 
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
+              doc_ids=[]
 
-               for y in ds:
-                   doc_ids.append(y)
+              for x in docs:
+                  query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+              
+                  cursor = conn.cursor()
+                  cursor.execute(query11)
+                  ds = cursor.fetchall()
 
-               cursor.close()
+                  for y in ds:
+                      doc_ids.append(y)
 
-           if len(doc_ids)==0:
-               continue
+                  cursor.close()
 
-           val=0
+              if len(doc_ids)==0:
+                  continue
+              else:
+                 data={}
+                 data["idCorpus"]=icd[0]
+                 data["corpusEntry"]=icd[1]
+                 n=icd[1].split("_")
+                 n.pop(0)
+                 data["corpusName"]="_".join(n)
+                 textFramesFE=[]
+                 videoFramesFE=[]
+                 docs=[]
+                 
 
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
+                 for x in doc_ids:
+                   query11= "SELECT idDocument,entry from document WHERE idDocument="+str(x[0])
 
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
                    cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
+                   cursor.execute(query11)
+                   d = cursor.fetchall()
 
+                   for y in d:
+                      docs.append(y)
+                
                    cursor.close()
 
-                   for id3 in sent_ids:
-                      query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                      cursor = conn.cursor()
-                      cursor.execute(query41)
-                      smm = cursor.fetchall()
+                 for id1 in docs:
+                   
+                    s=[]
+                    s1=[]
+                    query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                    
+                    cursor = conn.cursor()
+                    cursor.execute(query2)
+                    para_ids = cursor.fetchall()
 
-                      x=smm[0]
+                    cursor.close()
+
+                    for id2 in para_ids:
+                        query3= "SELECT idSentence,text from sentence where idParagraph="+str(id2[0])
                         
-                      hms=x[0].split(":")
-                         
-                      h=int(hms[0])
-                      m=int(hms[1])
-                      sl=hms[2].split(".")
-                      s=int(sl[0])+int(sl[1])/100
-                      t1=h*3600+m*60+s
-                         
-                         
-                      hms=x[1].split(":")
-                      h=int(hms[0])
-                      m=int(hms[1])
-                      sl=hms[2].split(".")
-                      s=int(sl[0])+int(sl[1])/100
-                      t2=h*3600+m*60+s
+                        cursor = conn.cursor()
+                        cursor.execute(query3)
+                        sent_ids = cursor.fetchall()
 
-                      cursor.close()
-                      
+                        cursor.close()
 
-                      query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
-                      cursor = conn.cursor()
-                      cursor.execute(query4)
-                      fe_ids = cursor.fetchall()
+                        for x in sent_ids:
+                            s.append(x)
+
+                            query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
+                     
+                            cursor = conn.cursor()
+                            cursor.execute(query41)
+                            smm = cursor.fetchall()
+
+                            cursor.close()
+                            s1.append(smm[0])
+
+                    d_buf= dict(zip(s, s1))
+
+                    for id3 in s:
+                          query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                           
+                          cursor = conn.cursor()
+                          cursor.execute(query4)
+                          fe_ids = cursor.fetchall()
+
+                          feset_ids= set(fe_ids)
+
+                          cursor.close()
+
+                          feset=[]
+
+                          if (None,) in feset_ids:
+                              feset_ids.remove((None,))
+
+                          for id4 in feset_ids:
+                              query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                              cursor = conn.cursor()
+                              cursor.execute(query5)
+                              fe = cursor.fetchall()
+
+                              feset.append(fe[0])
+
+                              cursor.close()
+
+                          feset_ids=list(feset_ids)
 
 
-                      fes=[value for value in fe_ids if value != (None,)]
+                          f_ids=[]
+                          fset=[]
 
-                       
-                      for x in fes:
-                           Feset_ids.append(x)
-                           start.append(t1)
-                           end.append(t2)
+                          query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query41)
+                          ts = cursor.fetchall()
 
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
+                          x=ts[0]
+                                       
+                          hms=x[0].split(":")
+                                        
+                          h=int(hms[0])
+                          m=int(hms[1])
+                          sl=hms[2].split(".")
+                          secs=int(sl[0])+int(sl[1])/100
+                          t1=h*3600+m*60+secs
+                                        
+                                        
+                          hms=x[1].split(":")
+                          h=int(hms[0])
+                          m=int(hms[1])
+                          sl=hms[2].split(".")
+                          secs=int(sl[0])+int(sl[1])/100
+                          t2=h*3600+m*60+secs
 
-                Feset.append(fe[0])
+                          for id4 in feset_ids:
+                               query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query6)
+                               f = cursor.fetchall()
 
-                cursor.close()
+                               cursor.close()
+
+                               fset=[]
+
+                               for x in f:
+                                      query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                                      cursor = conn.cursor()
+                                      cursor.execute(query7)
+                                      f1 = cursor.fetchall()
+
+                                      
+                                      for x in f1:
+                                        d={}
+                                        d["idFrame"]=x[0]
+                                        d["frameEntry"]=x[1]
+                                        fn=x[1].split("_")
+                                        fn.pop(0)
+                                        d["frameName"]="_".join(fn)
+                                        fes=[]
+                                        query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                                        cursor = conn.cursor()
+                                        cursor.execute(query71)
+                                        fe = cursor.fetchall()
+
+                                        for y in fe:
+                                           if (y[0],) in feset_ids:
+                                              d3={}
+                                              d3["idFrameElement"]=y[0]
+                                              d3["frameElementEntry"]=y[1]
+                                              fn1=x[1].split("_")
+                                              fn1.pop(0)
+                                              d3["frameElementName"]="_".join(fn1)
+                                              d3["startTime"]=t1
+                                              d3["endTime"]=t2
+                                              fes.append(d3)
+
+                                        cursor.close()
+                                              
+                                        d["fes"]=fes
+                                        textFramesFE.append(d)
+
+                                      cursor.close()     
                            
 
-           Feset_ids=list(Feset_ids)
+                          query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
+                          cursor = conn.cursor()
+                          cursor.execute(query42)
+                          ann_id = cursor.fetchall()
 
-           F_ids=[]
+                          cursor.close()
 
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
+                          query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
 
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-
-           d[icd[0]]=d2
-           
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-       query = "SELECT idCorpus from corpus"
-
-       cursor = conn.cursor()
-       cursor.execute(query)
-       crp_ids = cursor.fetchall()
-
-       cursor.close()
-
-       do={}
-
-       for icd in crp_ids:
-                
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
-
-           cursor.close()
-
-           doc_ids=[]
-
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
-
-               for y in ds:
-                   doc_ids.append(y)
-
-               cursor.close()
-
-           if len(doc_ids)==0:
-               continue
-
-           val=0
-
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           start=[]
-           end=[]
-           Fset=[]
-
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
-
-                   cursor.close()
-
-                   smm_ids=[]
-
-                   for id3 in sent_ids:
-
-                       query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query41)
-                       smm = cursor.fetchall()
-
-                       smm_ids.append(smm[0])
-
-                       cursor.close()
-
-
-                   for id3 in smm_ids:
-
-                       query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-                       cursor = conn.cursor()
-                       cursor.execute(query42)
-                       ann_id = cursor.fetchall()
-
-                       cursor.close()
-
-                       query4= "SELECT idFrameElement,startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
-
-                       cursor.close()
-
-                       
-                       for x in fe_ids:
-                           Feset_ids.append(x[0])
-
-                       for x in fe_ids:
-                          start.append(x[1]*0.033)
-                          end.append(x[2]*0.033)
-
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
-
-                Feset.append(fe[0])
-
-                cursor.close()
                            
+                          cursor = conn.cursor()
+                          cursor.execute(query4)
+                          fe_ids = cursor.fetchall()
 
-           Feset_ids=list(Feset_ids)
+                          feset_ids= set(fe_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
+                          cursor.close()
 
-           F_ids=[]
+                          feset=[]
 
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
+                          if (None,) in feset_ids:
+                              feset_ids.remove((None,))
 
-                d1[id4]=f
+                          for id4 in feset_ids:
+                              query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                              cursor = conn.cursor()
+                              cursor.execute(query5)
+                              fe = cursor.fetchall()
 
-                cursor.close()
+                              feset.append(fe[0])
 
-                Fset=[]
+                              cursor.close()
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                          feset_ids=list(feset_ids)
 
-                    Fset.append(f1)
+                          f_ids=[]
+                          fset=[]
+                          start=[]
+                          end=[]
 
-                    cursor.close()
+                          query41= "SELECT startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-           do[icd[0]]=d2
-           
+                          cursor = conn.cursor()
+                          cursor.execute(query41)
+                          ts = cursor.fetchall()
+
+                          for x in ts:
+                             start.append(x[0])
+                             end.append(x[1])
+
+                          cursor.close()
+
+                          for id4 in feset_ids:
+                               query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query6)
+                               f = cursor.fetchall()
+
+                               cursor.close()
+
+                               fset=[]
+
+                               for x in f:
+                                      query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                                      cursor = conn.cursor()
+                                      cursor.execute(query7)
+                                      f1 = cursor.fetchall()
+
+                                      
+                                      for x in f1:
+                                        d={}
+                                        d["idFrame"]=x[0]
+                                        d["frameEntry"]=x[1]
+                                        fn=x[1].split("_")
+                                        fn.pop(0)
+                                        d["frameName"]="_".join(fn)
+                                        fes=[]
+                                        query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                                        cursor = conn.cursor()
+                                        cursor.execute(query71)
+                                        fe = cursor.fetchall()
+
+                                        for y in fe:
+                                           if (y[0],) in feset_ids:
+                                              d3={}
+                                              d3["idFrameElement"]=y[0]
+                                              d3["frameElementEntry"]=y[1]
+                                              fn1=x[1].split("_")
+                                              fn1.pop(0)
+                                              d3["frameElementName"]="_".join(fn1)
+                                              d3["startTime"]=start[fe_ids.index(id4)]*0.033
+                                              d3["endTime"]=end[fe_ids.index(id4)]*0.033
+                                              fes.append(d3)
+
+                                        cursor.close()
+                                              
+                                        d["fes"]=fes
+                                        videoFramesFE.append(d)
+
+                                      cursor.close()
+
+                 data["textFramesFE"]=textFramesFE
+                 data["videoFramesFE"]=videoFramesFE
+                 djson["data"]=data
+     
        conn.close()
 
-       l=list(d.values())
-       l1=list(do.values())
-       x=l[0]
-       y=l1[0]
-       lx=list(x.keys())
-       ly=list(y.keys())
-       df={}
-       k=list(do.keys())
-       dmain={}
-       for a_fe in lx:
-          if a_fe in ly:
-             df[a_fe]=[x[a_fe],y[a_fe]]
 
-       dmain[k[0]]=df
-       print(dmain)
        with open('report10.json', 'w') as fp:
-          json.dump(dmain, fp)
+          json.dump(djson, fp, indent=4)
+
+       return djson
+
+      
 
    elif val=="11":
-       conn = mysql.connector.connect(
+           djson={}
+           djson["reportNumber"]=val
+           djson["reportTitle"]="Report "+val
+
+       
+           conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
                   password="",
                   database="test_db"
                 )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
+           v=1
+           query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
 
-       d={}
+           cursor = conn.cursor()
+           cursor.execute(query11)
+           d = cursor.fetchall()
 
-       val=0
+           id1=d[0]
 
-       for id1 in doc_ids:
-
-           l=[]
-           Feset=[]
+           data={}
+           data["idDocument"]=id1[0]
+           data["documentEntry"]=id1[1]
+           n=id1[1].split("_")
+           n.pop(0)
+           data["documentName"]="_".join(n)
+           textFramesFE=[]
+           videoFramesFE=[]
            Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for id3 in sent_ids:
-                  query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
-                  cursor = conn.cursor()
-                  cursor.execute(query41)
-                  smm = cursor.fetchall()
-
-                  x=smm[0]
-                        
-                  hms=x[0].split(":")
-                         
-                  h=int(hms[0])
-                  m=int(hms[1])
-                  sl=hms[2].split(".")
-                  s=int(sl[0])+int(sl[1])/100
-                  t1=h*3600+m*60+s
-                         
-                         
-                  hms=x[1].split(":")
-                  h=int(hms[0])
-                  m=int(hms[1])
-                  sl=hms[2].split(".")
-                  s=int(sl[0])+int(sl[1])/100
-                  t2=h*3600+m*60+s
-
-                  cursor.close()
-                      
-
-                  query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
-                
-                  cursor = conn.cursor()
-                  cursor.execute(query4)
-                  fe_ids = cursor.fetchall()
-
-
-                  fes=[value for value in fe_ids if value != (None,)]
-
-                       
-                  for x in fes:
-                     Feset_ids.append(x)
-                     start.append(t1)
-                     end.append(t2)
-
-           Feset_ids=set(Feset_ids)
-
-           for id4 in Feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               Feset.append(fe[0])
-
-               cursor.close()
-                       
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-
-           d[id1[0]]=d2
-            
-       conn.close()
-
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       
-       cursor.close()
-
-       do={}
-
-       val=0
-
-       for id1 in doc_ids:
-
-           l=[]
            Feset=[]
-           Feset_ids=[]
-           Fset=[]
-           start=[]
-           end=[]
-           
+          
+           s=[]
+           s1=[]
            query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
            
            cursor = conn.cursor()
@@ -3209,7 +2749,7 @@ def getReports(val):
            cursor.close()
 
            for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+               query3= "SELECT idSentence,text from sentence where idParagraph="+str(id2[0])
                
                cursor = conn.cursor()
                cursor.execute(query3)
@@ -3217,172 +2757,288 @@ def getReports(val):
 
                cursor.close()
 
-               smm_ids=[]
+               for x in sent_ids:
+                   s.append(x)
 
-               for id3 in sent_ids:
-
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
+                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
             
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   smm_ids.append(smm[0])
-
-                   cursor.close()
-
-
-               for id3 in smm_ids:
-                  query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
-
-                  cursor = conn.cursor()
-                  cursor.execute(query42)
-                  ann_id = cursor.fetchall()
-
-                  cursor.close()
-
-                  query4= "SELECT idFrameElement,startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                  cursor = conn.cursor()
-                  cursor.execute(query4)
-                  fe_ids = cursor.fetchall()
-
-                  cursor.close()
-
-                       
-                  for x in fe_ids:
-                     Feset_ids.append(x[0])
-
-                  for x in fe_ids:
-                     start.append(x[1]*0.033)
-                     end.append(x[2]*0.033)
-
-           Feset_ids=set(Feset_ids)
-
-           for id4 in Feset_ids:
-               query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4)
-               cursor = conn.cursor()
-               cursor.execute(query5)
-               fe = cursor.fetchall()
-
-               Feset.append(fe[0])
-
-               cursor.close()
-                       
-
-           Feset_ids=list(Feset_ids)
-
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
-           F_ids=[]
-
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4)
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
-
-                d1[id4]=f
-
-                cursor.close()
-
-                Fset=[]
-
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
-
-                    Fset.append(f1)
-
-                    cursor.close()
-
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=["",start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[Fset[0],start[Feset_ids.index(id4)],end[Feset_ids.index(id4)]]
-           do[id1[0]]=d2
-           
-       conn.close()
-
-       l=list(d.values())
-       l1=list(do.values())
-       x=l[0]
-       y=l1[0]
-       lx=list(x.keys())
-       ly=list(y.keys())
-       df={}
-       k=list(do.keys())
-       dmain=dict.fromkeys(list(do.keys()))
-       for a_fe in lx:
-          if a_fe in ly:
-             df[a_fe]=[x[a_fe],y[a_fe]]
-
-       dmain[k[0]]=df
-       print(dmain)
-       with open('report11.json', 'w') as fp:
-          json.dump(dmain, fp)
-
-
-   elif val=="12":
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       s=[]
-       s1=[]
-       
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for y in sent_ids:
-                   s.append(y)
-
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(y[0])
                    cursor = conn.cursor()
                    cursor.execute(query41)
                    smm = cursor.fetchall()
 
                    cursor.close()
                    s1.append(smm[0])
-                   
+
+           d_buf= dict(zip(s, s1))
+
+           for id3 in s:
+                 query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+                  
+                 cursor = conn.cursor()
+                 cursor.execute(query4)
+                 fe_ids = cursor.fetchall()
+
+                 feset_ids= set(fe_ids)
+
+                 cursor.close()
+
+                 feset=[]
+
+                 if (None,) in feset_ids:
+                     feset_ids.remove((None,))
+
+                 for id4 in feset_ids:
+                     query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                     cursor = conn.cursor()
+                     cursor.execute(query5)
+                     fe = cursor.fetchall()
+
+                     feset.append(fe[0])
+
+                     cursor.close()
+
+                 feset_ids=list(feset_ids)
+
+
+                 f_ids=[]
+                 fset=[]
+
+                 query41= "SELECT startTimestamp,endTimestamp FROM sentencemm WHERE idSentence="+str(id3[0])
+                 cursor = conn.cursor()
+                 cursor.execute(query41)
+                 ts = cursor.fetchall()
+
+                 x=ts[0]
+                              
+                 hms=x[0].split(":")
+                               
+                 h=int(hms[0])
+                 m=int(hms[1])
+                 sl=hms[2].split(".")
+                 secs=int(sl[0])+int(sl[1])/100
+                 t1=h*3600+m*60+secs
+                               
+                               
+                 hms=x[1].split(":")
+                 h=int(hms[0])
+                 m=int(hms[1])
+                 sl=hms[2].split(".")
+                 secs=int(sl[0])+int(sl[1])/100
+                 t2=h*3600+m*60+secs
+
+                 for id4 in feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
+
+                      cursor.close()
+
+                      fset=[]
+
+                      for x in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
+
+                             
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               fes=[]
+                               query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query71)
+                               fe = cursor.fetchall()
+
+                               for y in fe:
+                                  if (y[0],) in feset_ids:
+                                     d3={}
+                                     d3["idFrameElement"]=y[0]
+                                     d3["frameElementEntry"]=y[1]
+                                     fn1=x[1].split("_")
+                                     fn1.pop(0)
+                                     d3["frameElementName"]="_".join(fn1)
+                                     d3["startTime"]=t1
+                                     d3["endTime"]=t2
+                                     fes.append(d3)
+
+                               cursor.close()
+                                     
+                               d["fes"]=fes
+                               textFramesFE.append(d)
+
+                             cursor.close()     
+                  
+
+                 query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
+
+                 cursor = conn.cursor()
+                 cursor.execute(query42)
+                 ann_id = cursor.fetchall()
+
+                 cursor.close()
+
+                 query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                  
+                 cursor = conn.cursor()
+                 cursor.execute(query4)
+                 fe_ids = cursor.fetchall()
+
+                 feset_ids= set(fe_ids)
+
+                 cursor.close()
+
+                 feset=[]
+
+                 if (None,) in feset_ids:
+                     feset_ids.remove((None,))
+
+                 for id4 in feset_ids:
+                     query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                     cursor = conn.cursor()
+                     cursor.execute(query5)
+                     fe = cursor.fetchall()
+
+                     feset.append(fe[0])
+
+                     cursor.close()
+
+                 feset_ids=list(feset_ids)
+
+                 f_ids=[]
+                 fset=[]
+                 start=[]
+                 end=[]
+
+                 query41= "SELECT startFrame,endFrame FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+
+                 cursor = conn.cursor()
+                 cursor.execute(query41)
+                 ts = cursor.fetchall()
+
+                 for x in ts:
+                    start.append(x[0])
+                    end.append(x[1])
+
+                 cursor.close()
+
+                 for id4 in feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
+
+                      cursor.close()
+
+                      fset=[]
+
+                      for x in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
+
+                             
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               fes=[]
+                               query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query71)
+                               fe = cursor.fetchall()
+
+                               for y in fe:
+                                  if (y[0],) in feset_ids:
+                                     d3={}
+                                     d3["idFrameElement"]=y[0]
+                                     d3["frameElementEntry"]=y[1]
+                                     fn1=x[1].split("_")
+                                     fn1.pop(0)
+                                     d3["frameElementName"]="_".join(fn1)
+                                     d3["startTime"]=start[fe_ids.index(id4)]*0.033
+                                     d3["endTime"]=end[fe_ids.index(id4)]*0.033
+                                     fes.append(d3)
+
+                               cursor.close()
+                                     
+                               d["fes"]=fes
+                               videoFramesFE.append(d)
+
+                             cursor.close()
+
+           data["textFramesFE"]=textFramesFE
+           data["videoFramesFE"]=videoFramesFE
+     
+           conn.close()
+           djson["data"]=data
+
+           with open('report11.json', 'w') as fp:
+             json.dump(djson, fp, indent=4)
+
+           return djson
+
+
+
+   elif val=="12":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+       
+       conn = mysql.connector.connect(
+                  host="localhost",
+                  user="root",
+                  password="",
+                  database="test_db"
+                )
+       v=1
+                
+
+       s=[]
+       s1=[]
+       data=[]
+
+
+       s1.append((int(Id),))
+       
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
+            
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
+
+       cursor.close()
+       s.append(smm[0])
 
        d_buf= dict(zip(s, s1))
        d={}
 
        for id3 in s:
 
-           smm=d_buf[id3]
+           query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+           cursor = conn.cursor()
+           cursor.execute(query)
+           txt = cursor.fetchall()
+
+           cursor.close()
            
+           d1={}
+           d1["idSentence"]=d_buf[id3][0]
+           d1["SentenceText"]=txt[0]
+           textFramesFE=[]
+           videoFramesFE=[]
            query4= "SELECT idFrameElement FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
             
            cursor = conn.cursor()
@@ -3410,8 +3066,6 @@ def getReports(val):
 
            feset_ids=list(feset_ids)
 
-           d1=dict.fromkeys(feset_ids)
-           d2={}
 
            f_ids=[]
            fset=[]
@@ -3440,88 +3094,58 @@ def getReports(val):
            t2=h*3600+m*60+secs
 
            for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 fset=[]
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    fset.append(f1)
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
 
-                    cursor.close()
+                         for y in fe:
+                            if (y[0],) in feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               d3["startTime"]=t1
+                               d3["endTime"]=t2
+                               fes.append(d3)
 
-                if len(fset)==0:
-                    d2[feset[feset_ids.index(id4)][0]]=[[],t1,t2]
-                else:
-                    d2[feset[feset_ids.index(id4)][0]]=[fset[0],t1,t2]
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         textFramesFE.append(d)
 
-           d[d_buf[id3][0]]=d2
+                       cursor.close()
+
+           d1["textFramesFE"]=textFramesFE      
             
-       conn.close()
 
-       conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-       v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
-       s=[]
-       
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
-            
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
-
-                   cursor.close()
-                   s.append(smm[0])
-
-       do={}
-
-
-       for id3 in s:
-
-           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
 
            cursor = conn.cursor()
            cursor.execute(query42)
@@ -3531,18 +3155,21 @@ def getReports(val):
 
            query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
 
+            
            cursor = conn.cursor()
            cursor.execute(query4)
            fe_ids = cursor.fetchall()
 
+           feset_ids= set(fe_ids)
 
            cursor.close()
 
            feset=[]
 
-           
+           if (None,) in feset_ids:
+               feset_ids.remove((None,))
 
-           for id4 in fe_ids:
+           for id4 in feset_ids:
                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
                cursor = conn.cursor()
                cursor.execute(query5)
@@ -3552,10 +3179,7 @@ def getReports(val):
 
                cursor.close()
 
-           fe_ids=list(fe_ids)
-
-           d1=dict.fromkeys(fe_ids)
-           d2={}
+           feset_ids=list(feset_ids)
 
            f_ids=[]
            fset=[]
@@ -3574,67 +3198,71 @@ def getReports(val):
 
            cursor.close()
 
-           for id4 in fe_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+           for id4 in feset_ids:
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 fset=[]
 
                 for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    fset.append(f1)
+                       cursor.close()
 
-                    cursor.close()
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
 
-                if len(fset)==0:
-                    d2[feset[fe_ids.index(id4)][0]]=[[],start[fe_ids.index(id4)]*0.033,end[fe_ids.index(id4)]*0.033]
-                else:
-                    d2[feset[fe_ids.index(id4)][0]]=[fset[0],start[fe_ids.index(id4)]*0.033,end[fe_ids.index(id4)]*0.033]
+                         for y in fe:
+                            if (y[0],) in feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               d3["startTime"]=start[fe_ids.index(id4)]*0.033
+                               d3["endTime"]=end[fe_ids.index(id4)]*0.033
+                               fes.append(d3)
 
-           do[id3[0]]=d2
-            
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         videoFramesFE.append(d)
+
+           d1["videoFramesFE"]=videoFramesFE
+           data.append(d1)
+     
        conn.close()
+       djson["data"]=data
 
-       l=list(d.values())
-       l1=list(do.values())
-
-       df=[]
-
-       for x in l:
-          lx=list(x.keys())
-          y=l1[l.index(x)]
-          ly=list(y.keys())
-
-          fd=[]
-          for z in lx:
-             if z in ly:
-                fd.append([z,x[z],y[z]])
-          df.append(fd)
-                   
-       
-       dmain={}
-       k=list(do.keys())
-
-
-       for z in k:
-
-          dmain[z]=df[z-1]
-          
-       print(dmain)
        with open('report12.json', 'w') as fp:
-          json.dump(dmain, fp)
+          json.dump(djson, fp, indent=4)
+
+       return djson
+       
 
    elif val=="13":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -3643,7 +3271,7 @@ def getReports(val):
                 )
        v=1
 
-       query = "SELECT idCorpus from corpus"
+       query = "SELECT idCorpus,entry from corpus"
 
        cursor = conn.cursor()
        cursor.execute(query)
@@ -3654,186 +3282,221 @@ def getReports(val):
        d={}
 
        for icd in crp_ids:
+           if str(icd[0])==Id:
                 
-           query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
-           l=[]
-           
-           cursor = conn.cursor()
-           cursor.execute(query1)
-           docs = cursor.fetchall()
+              query1 = "SELECT idDocument from document where idCorpus="+str(icd[0])
+              l=[]
+              
+              cursor = conn.cursor()
+              cursor.execute(query1)
+              docs = cursor.fetchall()
 
-           cursor.close()
+              cursor.close()
 
-           doc_ids=[]
+              doc_ids=[]
 
-           for x in docs:
-               query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
-           
-               cursor = conn.cursor()
-               cursor.execute(query11)
-               ds = cursor.fetchall()
+              for x in docs:
+                  query11 = "SELECT idDocument from documentmm where idDocument="+str(x[0])
+              
+                  cursor = conn.cursor()
+                  cursor.execute(query11)
+                  ds = cursor.fetchall()
 
-               for y in ds:
-                   doc_ids.append(y)
+                  for y in ds:
+                      doc_ids.append(y)
 
-               cursor.close()
+                  cursor.close()
 
-           if len(doc_ids)==0:
-               continue
+              if len(doc_ids)==0:
+                  continue
+              else:
+                 data={}
+                 data["idCorpus"]=icd[0]
+                 data["corpusEntry"]=icd[1]
+                 n=icd[1].split("_")
+                 n.pop(0)
+                 data["corpusName"]="_".join(n)
+                 videoFramesFE=[]
 
-           val=0
+                 val=0
 
-           l=[]
-           Feset=[]
-           Feset_ids=[]
-           Fset=[]
+                 l=[]
+                 Feset=[]
+                 Feset_ids=[]
+                 Fset=[]
 
-           for id1 in doc_ids:
-               
-               query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query2)
-               para_ids = cursor.fetchall()
+                 for id1 in doc_ids:
+                     
+                     query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
+                     
+                     cursor = conn.cursor()
+                     cursor.execute(query2)
+                     para_ids = cursor.fetchall()
 
-               cursor.close()
+                     cursor.close()
 
-               for id2 in para_ids:
-                   query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-                   
-                   cursor = conn.cursor()
-                   cursor.execute(query3)
-                   sent_ids = cursor.fetchall()
+                     for id2 in para_ids:
+                         query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
+                         
+                         cursor = conn.cursor()
+                         cursor.execute(query3)
+                         sent_ids = cursor.fetchall()
 
-                   cursor.close()
+                         cursor.close()
 
-                   smm_ids=[]
+                         smm_ids=[]
 
-                   for id3 in sent_ids:
+                         for id3 in sent_ids:
 
-                       query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query41)
-                       smm = cursor.fetchall()
+                             query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(id3[0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query41)
+                             smm = cursor.fetchall()
 
-                       smm_ids.append(smm[0])
+                             smm_ids.append(smm[0])
 
-                       cursor.close()
+                             cursor.close()
 
 
-                   for id3 in smm_ids:
+                         for id3 in smm_ids:
 
-                       query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+                             query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
 
-                       cursor = conn.cursor()
-                       cursor.execute(query42)
-                       ann_id = cursor.fetchall()
+                             cursor = conn.cursor()
+                             cursor.execute(query42)
+                             ann_id = cursor.fetchall()
 
-                       cursor.close()
+                             cursor.close()
 
-                       query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
-                
-                       cursor = conn.cursor()
-                       cursor.execute(query4)
-                       fe_ids = cursor.fetchall()
+                             query4= "SELECT idFrameElement FROM objectmm WHERE idAnnotationSetMM="+str(ann_id[0][0])
+                      
+                             cursor = conn.cursor()
+                             cursor.execute(query4)
+                             fe_ids = cursor.fetchall()
 
-                       feset_ids= set(fe_ids)
+                             feset_ids= set(fe_ids)
 
-                       cursor.close()
+                             cursor.close()
 
-                       if (None,) in feset_ids:
-                           feset_ids.remove((None,))
+                             if (None,) in feset_ids:
+                                 feset_ids.remove((None,))
 
-                       
-                       for x in feset_ids:
-                           Feset_ids.append(x)
+                             
+                             for x in feset_ids:
+                                 Feset_ids.append(x)
 
-           Feset_ids=set(Feset_ids)
+                 Feset_ids=set(Feset_ids)
 
-           for id4 in Feset_ids:
-                query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query5)
-                fe = cursor.fetchall()
+                 for id4 in Feset_ids:
+                      query5= "SELECT entry FROM frameelement WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query5)
+                      fe = cursor.fetchall()
 
-                Feset.append(fe[0])
+                      Feset.append(fe[0])
 
-                cursor.close()
-                           
+                      cursor.close()
+                                 
 
-           Feset_ids=list(Feset_ids)
+                 Feset_ids=list(Feset_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
+                 d1=dict.fromkeys(Feset_ids)
+                 d2={}
 
-           F_ids=[]
+                 F_ids=[]
 
-           for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
-                cursor = conn.cursor()
-                cursor.execute(query6)
-                f = cursor.fetchall()
+                 for id4 in Feset_ids:
+                      query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
+                      cursor = conn.cursor()
+                      cursor.execute(query6)
+                      f = cursor.fetchall()
 
-                d1[id4]=f
+                      d1[id4]=f
 
-                cursor.close()
+                      cursor.close()
 
-                Fset=[]
+                      Fset=[]
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                      for x in f:
+                             query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x[0])
+                             cursor = conn.cursor()
+                             cursor.execute(query7)
+                             f1 = cursor.fetchall()
 
-                    Fset.append(f1)
+                             Fset.append(f1)
+                             for x in f1:
+                               d={}
+                               d["idFrame"]=x[0]
+                               d["frameEntry"]=x[1]
+                               fn=x[1].split("_")
+                               fn.pop(0)
+                               d["frameName"]="_".join(fn)
+                               fes=[]
+                               query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                               cursor = conn.cursor()
+                               cursor.execute(query71)
+                               fe = cursor.fetchall()
 
-                    cursor.close()
+                               for y in fe:
+                                  if (y[0],) in Feset_ids:
+                                     d3={}
+                                     d3["idFrameElement"]=y[0]
+                                     d3["frameElementEntry"]=y[1]
+                                     fn1=x[1].split("_")
+                                     fn1.pop(0)
+                                     d3["frameElementName"]="_".join(fn1)
+                                     fes.append(d3)
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
-           d[icd[0]]=d2
-       print("\n")
-       print(d)
+                               cursor.close()
+                                     
+                               d["fes"]=fes
+                               videoFramesFE.append(d)
+                      
+                 data["videoFramesFE"]=videoFramesFE
+                 djson["data"]=data
            
             
        conn.close()
 
+
        with open('report13.json', 'w') as fp:
-          json.dump(d, fp)
+          json.dump(djson, fp, indent=4)
+
+       return djson
 
 
    elif val=="14":
-        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
-        v=1
+           djson={}
+           djson["reportNumber"]=val
+           djson["reportTitle"]="Report "+val
+           conn = mysql.connector.connect(
+                     host="localhost",
+                     user="root",
+                     password="",
+                     database="test_db"
+                   )
+           v=1
 
                 
-        query1 = "SELECT idDocument from documentmm"
-       
-        cursor = conn.cursor()
-        cursor.execute(query1)
-        doc_ids = cursor.fetchall()
-       
-        cursor.close()
+           query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
 
-        d={}
+           cursor = conn.cursor()
+           cursor.execute(query11)
+           d = cursor.fetchall()
 
-        val=0
+           id1=d[0]
 
-        for id1 in doc_ids:
-
-           l=[]
-           Feset=[]
+           data={}
+           data["idDocument"]=id1[0]
+           data["documentEntry"]=id1[1]
+           n=id1[1].split("_")
+           n.pop(0)
+           data["documentName"]="_".join(n)
+           textFramesFE=[]
+           videoFramesFE=[]
            Feset_ids=[]
-           Fset=[]
+           Feset=[]
            
            query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
            
@@ -3909,47 +3572,67 @@ def getReports(val):
 
            Feset_ids=list(Feset_ids)
 
-           d1=dict.fromkeys(Feset_ids)
-           d2={}
-
            F_ids=[]
 
            for id4 in Feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 Fset=[]
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                for x1 in f:
+                          query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x1[0])
+                          cursor = conn.cursor()
+                          cursor.execute(query7)
+                          f1 = cursor.fetchall()
 
-                    Fset.append(f1)
+                          Fset.append(f1)
+                          for x in f1:
+                            d={}
+                            d["idFrame"]=x[0]
+                            d["frameEntry"]=x[1]
+                            fn=x[1].split("_")
+                            fn.pop(0)
+                            d["frameName"]="_".join(fn)
+                            fes=[]
+                            query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                            cursor = conn.cursor()
+                            cursor.execute(query71)
+                            fe = cursor.fetchall()
 
-                    cursor.close()
+                            for y in fe:
+                               if (y[0],) in Feset_ids:
+                                  d3={}
+                                  d3["idFrameElement"]=y[0]
+                                  d3["frameElementEntry"]=y[1]
+                                  fn1=x[1].split("_")
+                                  fn1.pop(0)
+                                  d3["frameElementName"]="_".join(fn1)
+                                  fes.append(d3)
 
-                if len(Fset)==0:
-                    d2[Feset[Feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[Feset[Feset_ids.index(id4)][0]]=Fset[0]
-           d[id1[0]]=d2
-           
-        print("\n")
-        print(d)
-        conn.close()
-        with open('report14.json', 'w') as fp:
-          json.dump(d, fp)
-      
+                            cursor.close()
+                                  
+                            d["fes"]=fes
+                            videoFramesFE.append(d)
+
+           data["videoFramesFE"]=videoFramesFE
+
+
+           djson["data"]=data
+           conn.close()
+           with open('report14.json', 'w') as fp:
+             json.dump(djson, fp, indent=4)
+
+           return djson
 
    elif val=="15":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
                   host="localhost",
                   user="root",
@@ -3957,51 +3640,43 @@ def getReports(val):
                   database="test_db"
                 )
        v=1
-                
-       query1 = "SELECT idDocument from documentmm"
-       
-       cursor = conn.cursor()
-       cursor.execute(query1)
-       doc_ids = cursor.fetchall()
+
        s=[]
+       s1=[]
+       data=[]
+
+
+       s1.append((int(Id),))
        
-       cursor.close()
-
-       for id1 in doc_ids:
-           
-           query2= "SELECT idParagraph from paragraph where idDocument="+str(id1[0])
-           
-           cursor = conn.cursor()
-           cursor.execute(query2)
-           para_ids = cursor.fetchall()
-
-           cursor.close()
-
-           for id2 in para_ids:
-               query3= "SELECT idSentence from sentence where idParagraph="+str(id2[0])
-               
-               cursor = conn.cursor()
-               cursor.execute(query3)
-               sent_ids = cursor.fetchall()
-
-               cursor.close()
-
-               for x in sent_ids:
-                   query41= "SELECT idSentenceMM FROM sentencemm WHERE idSentence="+str(x[0])
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
             
-                   cursor = conn.cursor()
-                   cursor.execute(query41)
-                   smm = cursor.fetchall()
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
 
-                   cursor.close()
-                   s.append(smm[0])
+       cursor.close()
+       s.append(smm[0])
 
+       d_buf= dict(zip(s, s1))
        d={}
-
 
        for id3 in s:
 
-           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(id3[0])
+           query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+           cursor = conn.cursor()
+           cursor.execute(query)
+           txt = cursor.fetchall()
+
+           cursor.close()
+           
+           d1={}
+           d1["idSentence"]=d_buf[id3][0]
+           d1["SentenceText"]=txt[0]
+           textFramesFE=[]
+           videoFramesFE=[]
+
+           query42= "SELECT idAnnotationSetMM FROM annotationsetmm WHERE idSentenceMM="+str(d_buf[id3][0])
 
            cursor = conn.cursor()
            cursor.execute(query42)
@@ -4037,67 +3712,301 @@ def getReports(val):
 
            feset_ids=list(feset_ids)
 
-           d1=dict.fromkeys(feset_ids)
-           d2={}
-
            f_ids=[]
            fset=[]
 
            for id4 in feset_ids:
-                query6= "SELECT idEntity2 FROM entityrelation WHERE idEntity1="+str(id4[0])
+                query6= "SELECT idFrame FROM `view_frameelement` WHERE idFrameElement="+str(id4[0])
                 cursor = conn.cursor()
                 cursor.execute(query6)
                 f = cursor.fetchall()
-
-                d1[id4]=f
 
                 cursor.close()
 
                 fset=[]
 
-                for x in f:
-                    query7= "SELECT entry FROM frame WHERE idFrame="+str(x[0])
-                    cursor = conn.cursor()
-                    cursor.execute(query7)
-                    f1 = cursor.fetchall()
+                for x1 in f:
+                       query7= "SELECT idFrame,entry FROM frame WHERE idFrame="+str(x1[0])
+                       cursor = conn.cursor()
+                       cursor.execute(query7)
+                       f1 = cursor.fetchall()
 
-                    fset.append(f1)
+                       
+                       for x in f1:
+                         d={}
+                         d["idFrame"]=x[0]
+                         d["frameEntry"]=x[1]
+                         fn=x[1].split("_")
+                         fn.pop(0)
+                         d["frameName"]="_".join(fn)
+                         fes=[]
+                         query71= "SELECT idFrameElement,entry FROM `view_frameelement` WHERE idFrame="+str(x[0])
+                         cursor = conn.cursor()
+                         cursor.execute(query71)
+                         fe = cursor.fetchall()
 
-                    cursor.close()
+                         for y in fe:
+                            if (y[0],) in feset_ids:
+                               d3={}
+                               d3["idFrameElement"]=y[0]
+                               d3["frameElementEntry"]=y[1]
+                               fn1=x[1].split("_")
+                               fn1.pop(0)
+                               d3["frameElementName"]="_".join(fn1)
+                               fes.append(d3)
 
-                if len(fset)==0:
-                    d2[feset[feset_ids.index(id4)][0]]=[]
-                else:
-                    d2[feset[feset_ids.index(id4)][0]]=fset[0]
+                         cursor.close()
+                               
+                         d["fes"]=fes
+                         videoFramesFE.append(d)
 
-           d[id3[0]]=d2
-       print("\n")
-       print(d)
+                       cursor.close()
+
+           d1["videoFramesFE"]=videoFramesFE
+           data.append(d1)
+     
+       conn.close()
+       djson["data"]=data                    
+                
             
        conn.close()
 
        with open('report15.json', 'w') as fp:
-          json.dump(d, fp)
+          json.dump(djson, fp, indent=4)
 
-   return 
+       return djson
+
+   elif val=="16":
+       djson={}
+       djson["reportNumber"]=val
+       djson["reportTitle"]="Report "+val
+       conn = mysql.connector.connect(
+                  host="localhost",
+                  user="root",
+                  password="",
+                  database="test_db"
+                )
+       v=1
+                
+
+       s=[]
+       s1=[]
+       data=[]
+
+
+       s1.append((int(Id),))
+       
+       query41= "SELECT idSentence FROM sentencemm WHERE idSentenceMM="+Id
+            
+       cursor = conn.cursor()
+       cursor.execute(query41)
+       smm = cursor.fetchall()
+
+       cursor.close()
+       s.append(smm[0])
+
+       d_buf= dict(zip(s, s1))
+       d={}
+
+       for id3 in s:
+
+          query= "SELECT text FROM sentence WHERE idSentence="+str(id3[0])
+
+          cursor = conn.cursor()
+          cursor.execute(query)
+          txt = cursor.fetchall()
+
+          cursor.close()
+           
+          d1={}
+          d1["idSentence"]=d_buf[id3][0]
+          d1["SentenceText"]=txt[0]
+          textFramesFE=[]
+          videoFramesFE=[]
+          tern_qualia_rel={}
+          query4= "SELECT DISTINCT idSubCorpus FROM `view_labelfecetarget` WHERE idSentence="+str(id3[0])
+ 
+          cursor = conn.cursor()
+          cursor.execute(query4)
+          sc = cursor.fetchall()
+
+          cursor.close()
+
+          for id4 in sc:
+               query5= "SELECT idLU FROM `view_subcorpuslu` WHERE idSubCorpus="+str(id4[0])
+               cursor = conn.cursor()
+               cursor.execute(query5)
+               tlu = cursor.fetchall()
+
+               cursor.close()
+
+               query50= "SELECT name FROM `view_lu` WHERE idLU="+str(tlu[0][0])
+
+               cursor = conn.cursor()
+               cursor.execute(query50)
+               tlu_name = cursor.fetchall()
+
+               cursor.close()
+
+               query53= "SELECT frameEntry FROM `view_lu` WHERE idLU="+str(tlu[0][0])
+
+               cursor = conn.cursor()
+               cursor.execute(query53)
+               fr = cursor.fetchall()
+
+               cursor.close()
+
+               query51= "SELECT idFrame FROM `view_lu` WHERE idLU="+str(tlu[0][0])
+
+               cursor = conn.cursor()
+               cursor.execute(query51)
+               frame = cursor.fetchall()
+
+               cursor.close()
+
+               query52 = "SELECT idLU FROM `view_lu` WHERE idFrame="+str(frame[0][0])
+
+               cursor = conn.cursor()
+               cursor.execute(query51)
+               flus = cursor.fetchall()
+
+               cursor.close()
+
+               rels=[]
+
+               for flu in flus:
+
+                  query6= "SELECT lu2.idLU,r.idEntity3 FROM view_relation r"
+                  query6= query6+" JOIN view_lu lu1 ON (r.idEntity1 = lu1.idEntity)"
+                  query6= query6+" JOIN view_lu lu2 ON (r.idEntity2 = lu2.idEntity)"
+                  query6= query6+" LEFT JOIN qualia q on (r.idEntity3 = q.idEntity)"
+                  query6= query6+" LEFT JOIN view_relation rq on (q.idEntity = rq.idEntity1)"
+                  query6= query6+" WHERE (lu1.idLU = \'"+str(tlu[0][0])+"\')"
+                  query6= query6+" AND (r.relationGroup = 'rgp_qualia')"
+                  query6= query6+" AND (rq.relationType = 'rel_qualia_frame')"
+                  query6= query6+" AND (lu1.idLanguage = 1)"
+                  query6= query6+" AND (lu2.idLanguage = 1)"
+                  query6= query6+" UNION"
+                  query6= query6+" SELECT lu1.idLU,r.idEntity3"
+                  query6= query6+" FROM view_relation r"
+                  query6= query6+" JOIN view_lu lu1 ON (r.idEntity1 = lu1.idEntity)"
+                  query6= query6+" JOIN view_lu lu2 ON (r.idEntity2 = lu2.idEntity)"
+                  query6= query6+" LEFT JOIN qualia q on (r.idEntity3 = q.idEntity)"
+                  query6= query6+" LEFT JOIN view_relation rq on (q.idEntity = rq.idEntity1)"
+                  query6= query6+" WHERE (lu2.idLU = \'"+str(flu[0])+"\')"
+                  query6= query6+" AND (r.relationGroup = 'rgp_qualia')"
+                  query6= query6+" AND (rq.relationType = 'rel_qualia_frame')"
+                  query6= query6+" AND (lu1.idLanguage = 1)"
+                  query6= query6+" AND (lu2.idLanguage = 1)"
+
+                  cursor = conn.cursor()
+                  cursor.execute(query6)
+                  rel = cursor.fetchall()
+                  
+
+                  rel_names=[]
+
+                  for r in rel:
+                     
+                     query60 = "SELECT name FROM `view_lu` WHERE idLU="+str(r[0])
+                     cursor = conn.cursor()
+                     cursor.execute(query60)
+                     rel_name = cursor.fetchall()
+
+                     
+                     query61 = "SELECT info FROM qualia WHERE idEntity="+str(r[1])
+                     cursor = conn.cursor()
+                     cursor.execute(query61)
+                     qr_name = cursor.fetchall()
+
+                     if len(qr_name)==0:
+                        d={}
+                        d["Lexical Unit in Frame"]=rel_name[0][0]
+                        d["Qualia Relation"]=''
+                        rel_names.append(d)
+                     else:
+                        d={}
+                        d["Lexical Unit in Frame"]=rel_name[0][0]
+                        d["Qualia Relation"]=qr_name[0][0]
+                        rel_names.append(d)
+
+                  cursor.close()
+               tern_qualia_rel["Lexical Unit in Sentence"]=tlu_name[0]
+               tern_qualia_rel["Frame"]=fr[0][0]
+               tern_qualia_rel["Relations to LUs"]=rel_names
+
+          d1["Ternary_Qualia_Relations"]=tern_qualia_rel
+               
+          data.append(d1)
+            
+       conn.close()
+       djson["data"]=data
+
+       with open('report16.json', 'w') as fp:
+          json.dump(djson, fp, indent=4)
+
+
+       return djson
+          
 
 app = Flask(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app)
 
-@app.route('/report',methods=['GET','POST'])
+@app.route('/report',methods=['POST','GET','OPTIONS'])
+@cross_origin()
 def getreport():
-   val=request.form['val']
-   getReports(val)
-   #val=input("Enter yes if satisfied with detected objects and no to create and track own objects...")
-   #if val=="no":
-      #v=1
-      #objectTracking.detect_and_track(video_path,sid,start_time,end_time,v)
+   val = request.json["val"]
+   Id = request.json["Id"]
+   print(val)
+   print(Id)
 
-   return 'ok'
-   
+   reports={}
+
+   if val=="1":
+      r1=getReports("1",Id)
+      r2=getReports("4",Id)
+      r3=getReports("7",Id)
+      r4=getReports("10",Id)
+      r5=getReports("13",Id)
+      reports["1"]=r1
+      reports["2"]=r2
+      reports["3"]=r3
+      reports["4"]=r4
+      reports["5"]=r5
+      
+   elif val=="2":
+      r1=getReports("2",Id)
+      r2=getReports("5",Id)
+      r3=getReports("8",Id)
+      r4=getReports("11",Id)
+      r5=getReports("14",Id)
+      reports["1"]=r1
+      reports["2"]=r2
+      reports["3"]=r3
+      reports["4"]=r4
+      reports["5"]=r5
+      
+   elif val=="3":
+      r1=getReports("3",Id)
+      r2=getReports("6",Id)
+      r3=getReports("9",Id)
+      r4=getReports("12",Id)
+      r5=getReports("15",Id)
+      r6=getReports("16",Id)
+      reports["1"]=r1
+      reports["2"]=r2
+      reports["3"]=r3
+      reports["4"]=r4
+      reports["5"]=r5
+      reports["6"]=r6
+
+   #print(reports)
+   return jsonify(reports)   
 
 if __name__=='__main__':
-   app.run()
+    app.run(debug=False, host='0.0.0.0')
+
        
 
 
