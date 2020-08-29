@@ -15,10 +15,10 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
 
@@ -311,10 +311,10 @@ def getReports(val,Id):
            djson["reportNumber"]=val
            djson["reportTitle"]="Report "+val
            conn = mysql.connector.connect(
-                     host="localhost",
-                     user="root",
-                     password="",
-                     database="test_db"
+                    host="server2.framenetbr.ufjf.br",
+                    user="fnbrasil",
+                    password="OssracF1982",
+                    database="webtool_db"
                    )
            v=1
                    
@@ -549,10 +549,10 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
                 
@@ -748,10 +748,10 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
 
@@ -1074,10 +1074,10 @@ def getReports(val,Id):
            djson["reportNumber"]=val
            djson["reportTitle"]="Report "+val
            conn = mysql.connector.connect(
-                     host="localhost",
-                     user="root",
-                     password="",
-                     database="test_db"
+                    host="server2.framenetbr.ufjf.br",
+                    user="fnbrasil",
+                    password="OssracF1982",
+                    database="webtool_db"
                    )
            v=1
                 
@@ -1353,11 +1353,10 @@ def getReports(val,Id):
        djson["reportTitle"]="Report "+val
        
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
+                 host="server2.framenetbr.ufjf.br",
+                 user="fnbrasil",
+                 password="OssracF1982",
+                 database="webtool_db")
        v=1
                 
        query1 = "SELECT idDocument from documentmm"
@@ -1585,10 +1584,10 @@ def getReports(val,Id):
 
        
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
        query = "SELECT idCorpus,entry from corpus"
@@ -1884,10 +1883,10 @@ def getReports(val,Id):
 
           
            conn = mysql.connector.connect(
-                     host="localhost",
-                     user="root",
-                     password="",
-                     database="test_db"
+                    host="server2.framenetbr.ufjf.br",
+                    user="fnbrasil",
+                    password="OssracF1982",
+                    database="webtool_db"
                    )
            v=1
                    
@@ -2143,10 +2142,10 @@ def getReports(val,Id):
        djson["reportTitle"]="Report "+val
        
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
                 
@@ -2383,10 +2382,10 @@ def getReports(val,Id):
 
        
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
        query = "SELECT idCorpus,entry from corpus"
@@ -2713,10 +2712,10 @@ def getReports(val,Id):
 
        
            conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
            v=1
            query11= "SELECT idDocument,entry from document WHERE idDocument="+Id
@@ -2997,10 +2996,10 @@ def getReports(val,Id):
        djson["reportTitle"]="Report "+val
        
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
                 
@@ -3264,10 +3263,10 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
 
@@ -3471,10 +3470,10 @@ def getReports(val,Id):
            djson["reportNumber"]=val
            djson["reportTitle"]="Report "+val
            conn = mysql.connector.connect(
-                     host="localhost",
-                     user="root",
-                     password="",
-                     database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                    )
            v=1
 
@@ -3634,11 +3633,11 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
-                )
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
+       )
        v=1
 
        s=[]
@@ -3781,10 +3780,10 @@ def getReports(val,Id):
        djson["reportNumber"]=val
        djson["reportTitle"]="Report "+val
        conn = mysql.connector.connect(
-                  host="localhost",
-                  user="root",
-                  password="",
-                  database="test_db"
+              host="server2.framenetbr.ufjf.br",
+              user="fnbrasil",
+              password="OssracF1982",
+              database="webtool_db"
                 )
        v=1
                 
