@@ -299,8 +299,8 @@ def getReports(val,Id):
             
        conn.close()
 
-       with open('report1.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report1.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
        
@@ -539,8 +539,8 @@ def getReports(val,Id):
             
            conn.close()
 
-           with open('report2.json', 'w') as fp:
-             json.dump(djson, fp, indent=4)
+           #with open('report2.json', 'w') as fp:
+             #json.dump(djson, fp, indent=4)
 
            return djson
 
@@ -738,8 +738,8 @@ def getReports(val,Id):
 
        djson["data"]=data
 
-       with open('report3.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report3.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -1062,8 +1062,8 @@ def getReports(val,Id):
             
        conn.close()
 
-       with open('report4.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report4.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -1341,8 +1341,8 @@ def getReports(val,Id):
 
            djson["data"]=data
 
-           with open('report5.json', 'w') as fp:
-              json.dump(djson, fp, indent=4)
+           #with open('report5.json', 'w') as fp:
+              #json.dump(djson, fp, indent=4)
 
            return djson
 
@@ -1572,8 +1572,8 @@ def getReports(val,Id):
        conn.close()
        djson["data"]=data
 
-       with open('report6.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report6.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -1870,8 +1870,8 @@ def getReports(val,Id):
        conn.close()
 
 
-       with open('report7.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report7.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
        
@@ -2130,8 +2130,8 @@ def getReports(val,Id):
            conn.close()
            djson["data"]=data
 
-           with open('report8.json', 'w') as fp:
-             json.dump(djson, fp, indent=4)
+           #with open('report8.json', 'w') as fp:
+             #json.dump(djson, fp, indent=4)
 
            return djson
        
@@ -2370,8 +2370,8 @@ def getReports(val,Id):
        conn.close()
        djson["data"]=data
 
-       with open('report9.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report9.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -2699,8 +2699,8 @@ def getReports(val,Id):
        conn.close()
 
 
-       with open('report10.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report10.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -2984,8 +2984,8 @@ def getReports(val,Id):
            conn.close()
            djson["data"]=data
 
-           with open('report11.json', 'w') as fp:
-             json.dump(djson, fp, indent=4)
+           #with open('report11.json', 'w') as fp:
+             #json.dump(djson, fp, indent=4)
 
            return djson
 
@@ -3253,8 +3253,8 @@ def getReports(val,Id):
        conn.close()
        djson["data"]=data
 
-       with open('report12.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report12.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
        
@@ -3460,8 +3460,8 @@ def getReports(val,Id):
        conn.close()
 
 
-       with open('report13.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report13.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -3624,8 +3624,8 @@ def getReports(val,Id):
 
            djson["data"]=data
            conn.close()
-           with open('report14.json', 'w') as fp:
-             json.dump(djson, fp, indent=4)
+           #with open('report14.json', 'w') as fp:
+             #json.dump(djson, fp, indent=4)
 
            return djson
 
@@ -3771,8 +3771,8 @@ def getReports(val,Id):
             
        conn.close()
 
-       with open('report15.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report15.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
        return djson
 
@@ -3942,8 +3942,8 @@ def getReports(val,Id):
        conn.close()
        djson["data"]=data
 
-       with open('report16.json', 'w') as fp:
-          json.dump(djson, fp, indent=4)
+       #with open('report16.json', 'w') as fp:
+          #json.dump(djson, fp, indent=4)
 
 
        return djson
@@ -3951,6 +3951,7 @@ def getReports(val,Id):
 
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
+app.config['JSON_SORT_KEYS'] = False
 cors = CORS(app)
 
 @app.route('/report',methods=['POST','GET','OPTIONS'])
@@ -4005,8 +4006,7 @@ def getreport():
    return jsonify(reports)   
 
 if __name__=='__main__':
-    app.run(debug=False, host='0.0.0.0')
-
+   app.run(debug=False, host='0.0.0.0')
        
 
 
