@@ -109,16 +109,15 @@ export class Review extends Component {
      this.start= start;
      this.end= end;
      this.sid= sid;
-     var formData=new FormData();
-     formData.append("start_time",this.start);
-     formData.append("end_time",this.end);
-     formData.append("sid",this.sid);
-     var xhr=new XMLHttpRequest();
-     var ip= this.state.ip;
-     var url= process.env.REACT_APP_FLASK_URI;
-     alert(url);
-     xhr.open('POST',url,true);
-     xhr.send(formData);
+     axios.post(process.env.REACT_APP_FLASK_URI+"/track", {
+     start: this.start,
+     end: this.end,
+     end: this.end,
+}).then((response) => {
+     console.log(response.data); 
+     var op=JSON.stringify(response.data);
+     alert(op);
+  });
   }
 
 handleClick({nativeEvent}) {
