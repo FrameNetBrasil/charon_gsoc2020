@@ -29,9 +29,9 @@ def track():
    print(filename)
    fn=filename.split(".")
    f=fn[0].split("/")
-   start_time=request.form['start_time']
-   end_time=request.form['end_time']
-   sid=request.form['sid']
+   start_time=request.json['start_time']
+   end_time=request.json['end_time']
+   sid=request.json['sid']
    sid=str(int(sid)-1)
    print(PATH_TO_VIDEO_DIR)
    video_path=filename
@@ -53,7 +53,7 @@ def track():
    #if val=="no":
       #v=1
       #objectTracking.detect_and_track(video_path,start_time,end_time,v)
-   return 'ok'
+   return jsonify("See detected objects at /server/display_objects.php and tracking at /server/track_objects.php")
 
 if __name__=='__main__':
     app.run(debug=False, host='0.0.0.0')
