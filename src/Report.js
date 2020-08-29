@@ -30,7 +30,7 @@ export class Report extends Component{
 
 
     handleClick({nativeEvent}) {
-      var url= 'http://127.0.0.1:5000';
+      var url= process.env.REACT_APP_FLASK_URI+"/report";
       axios.get(url);
   }
 
