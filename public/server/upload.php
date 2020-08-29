@@ -5,6 +5,9 @@ include "config.php";
 require '../vendor/autoload.php';
 
 use thiagoalessio\TesseractOCR\TesseractOCR;
+error_reporting(0);
+echo "Welcome to the Multimodal Annotation Tool. Please specify your preferences.";
+
 
 include_once('../vendor/james-heinrich/getid3/getid3/getid3.php');
 
