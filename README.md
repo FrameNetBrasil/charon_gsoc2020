@@ -2,10 +2,10 @@ This project was bootstrapped with [Create React App](https://github.com/faceboo
 
 The repository contains code for a multimodal annotation preprocessing tool built using React and PHP. 
 
-GSoC report links: 
-First Evaluation Report: https://github.com/FrameNetBrasil/webtool/blob/gsoc2020_2/GSoC2020/weekly_reports/FirstEvaluationReport_idea2.md
-Second Evaluation Report: https://github.com/FrameNetBrasil/webtool/blob/gsoc2020_2/GSoC2020/weekly_reports/SecondEvaluationReport_idea2.md
-Final Report: https://medium.com/@prishita.r85/a-new-frame-based-image-and-video-annotation-pipeline-my-gsoc-20-project-6daa9fe5f391
+GSoC report links:  
+First Evaluation Report: https://github.com/FrameNetBrasil/webtool/blob/gsoc2020_2/GSoC2020/weekly_reports/FirstEvaluationReport_idea2.md  
+Second Evaluation Report: https://github.com/FrameNetBrasil/webtool/blob/gsoc2020_2/GSoC2020/weekly_reports/SecondEvaluationReport_idea2.md  
+Final Report: https://medium.com/@prishita.r85/a-new-frame-based-image-and-video-annotation-pipeline-my-gsoc-20-project-6daa9fe5f391  
 
 This distribution is running as a Docker container. In order to run this container you'll need docker installed:
 
