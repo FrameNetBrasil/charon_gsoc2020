@@ -1,10 +1,10 @@
 <?php
 
 $config = [
-    'hostname' => "200.131.61.130",
+    'hostname' => "10.0.75.1",
     'username' => "fnbrasil",
     'dbname' => "webtool_db",
-    'password' => "OssracF1982",
+    'password' => "",
     'usrtable1' => "language",
     'columnname1' => "language",
     'usrtable2' => "corpus",
@@ -16,9 +16,8 @@ $config = [
     'columnname5' => "idSentence",
     'pathtable' => "documentmm",
     'pathcolumn' => "visualPath",
-    'dataPath' => '/home/framenetbr/public_html/charon/data/',
-    'ffmpeg.binaries' => '/home/framenetbr/public_html/charon/bin/ffmpeg',
-    'ffprobe.binaries' => '/home/framenetbr/public_html/charon/bin/ffprobe',
+    'dataPath' => '/var/www/html/data/',
+    'ffmpeg.binaries' => '/var/www/html/bin/ffmpeg',
+    'ffprobe.binaries' => '/var/www/html/bin/ffprobe',
 ];
-
 

@@ -110,9 +110,9 @@ export class Review extends Component {
      this.end= end;
      this.sid= sid;
      axios.post(process.env.REACT_APP_FLASK_URI+"/track", {
-     start: this.start,
-     end: this.end,
-     end: this.end,
+     start_time: this.start,
+     end_time: this.end,
+     sid: this.sid
 }).then((response) => {
      console.log(response.data); 
      var op=JSON.stringify(response.data);

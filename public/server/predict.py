@@ -8,7 +8,14 @@ import matplotlib
 import webbrowser
 import matplotlib.pyplot as plt,mpld3
 from matplotlib.patches import Rectangle
- 
+import configparser
+
+# Load the configuration file
+config = configparser.ConfigParser()
+config.read('config.ini')
+print(config.sections())
+MODEL_PATH = config.get("charon", "modelPath")
+
 class BoundBox:
 	def __init__(self, xmin, ymin, xmax, ymax, objness = None, classes = None):
 		self.xmin = xmin
@@ -181,8 +188,7 @@ def draw_boxes(filename, v_boxes, v_labels, v_scores):
 
 def return_pixels(filename):
         # load yolov3 model
-        print('/var/www/html/models/model.h5')
-        model = load_model('/var/www/html/models/model.h5')
+        model = load_model(MODEL_PATH + "model.h5")
         print(model)
         
         # define the expected input shape for the model
@@ -225,7 +231,7 @@ def return_pixels(filename):
 
 def return_pixels1(filename):
         # load yolov3 model
-        model = load_model('model.h5')
+        model = load_model(MODEL_PATH + "model.h5")
         
         # define the expected input shape for the model
         input_w, input_h = 416, 416

@@ -1,4 +1,4 @@
-from flask import Flask,render_template,request
+from flask import Flask,render_template,request,jsonify
 from flask_cors import CORS
 import requests
 import objectTracking 
@@ -9,6 +9,7 @@ from PIL import Image
 import os
 import configparser
 import io
+import shutil
 
 # Load the configuration file
 config = configparser.ConfigParser()
@@ -44,10 +45,13 @@ def track():
    if os.path.isdir(f[len(f)-1])==False:
       os.mkdir(f[len(f)-1])
    os.chdir(f[len(f)-1])
+   if os.path.isdir("sentence_"+sid)==True:
+      shutil.rmtree("sentence_"+sid)
    os.mkdir("sentence_"+sid)
    os.chdir(origdir)
    
-   objectTracking.detect_and_track(video_path,sid,start_time,end_time,v)
+   #objectTracking.detect_and_track(video_path,sid,start_time,end_time,v)
+   objectTracking.detect_and_track(video_path,start_time,end_time, sid)
 
    #val=input("Enter yes if satisfied with detected objects and no to create and track own objects...")
    #if val=="no":
