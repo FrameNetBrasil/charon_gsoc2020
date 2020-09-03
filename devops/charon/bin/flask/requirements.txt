@@ -26,6 +26,7 @@ importlib-metadata==1.7.0
 itsdangerous==1.1.0
 Jinja2==2.11.2
 joblib==0.16.0
+jsonify=0.5.0
 Keras==2.4.3
 Keras-Preprocessing==1.1.2
 keyring==17.1.1

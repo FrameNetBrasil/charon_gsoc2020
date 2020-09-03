@@ -5,6 +5,8 @@ import predict
 import webbrowser
 import os
 import mysql.connector
+import configparser
+import math
 
 from getFeatures import getFeatures
 from estimateAllTranslation import estimateAllTranslation
@@ -13,6 +15,12 @@ from moviepy.video.io.ffmpeg_tools import ffmpeg_extract_subclip
 from PIL import Image
 
 import xml.etree.ElementTree as ET
+
+# Load the configuration file
+config = configparser.ConfigParser()
+config.read('config.ini')
+print(config.sections())
+DATA_PATH = config.get("charon", "dataPath")
 
 def indent(elem, level=0):
   i = "\n" + level*"  "
@@ -32,7 +40,7 @@ def indent(elem, level=0):
 def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, save_to_file=False):
     # initialize
     print('========= Object tracking')
-    
+
     # create the file structure
     annotation = ET.Element('annotation')
     folder = ET.SubElement(annotation, 'folder')
@@ -57,7 +65,7 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
         _, frames[frame_idx] = rawVideo.read()
         if frames[frame_idx] is None:
             break
-        cv2.imwrite( "/home/framenetbr/public_html/charon/data/Video_Frames/frame%d.png" % count, frames[frame_idx])     # save frame as JPEG file
+        cv2.imwrite( DATA_PATH + "Video_Frames/frame%d.png" % count, frames[frame_idx])     # save frame as JPEG file
         count=count+1
     n_frame=count
     print("n frame count = " , n_frame)
@@ -67,7 +75,7 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
     out=[]
     for frame_idx in range(0,n_frame-10,10):
         print("== frame_idx = " + str(frame_idx))
-        filename= "/home/framenetbr/public_html/charon/data/Video_Frames/frame%d.png" % frame_idx
+        filename= DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
         labels,pixels = predict.return_pixels(filename)
         n_object= len(pixels)
         print(n_object)
@@ -84,9 +92,9 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
             im = Image.open(filename) 
             region = im.crop((xmn, ymn, xmx, ymx))
 
-            region.save("/home/framenetbr/public_html/charon/data/Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png")
-            object_path="/home/framenetbr/public_html/charon/data/Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png"
-            file=open("/home/framenetbr/public_html/charon/data/Object_Store/object_annotations.csv","a+")
+            region.save(DATA_PATH + "Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png")
+            object_path=DATA_PATH + "Object_Store/"+fn+"/sentence_%s"%sid+"/frame_%d"%frame_idx+"_object_%d"%o+".png"
+            file=open(DATA_PATH + "Object_Store/object_annotations.csv","a+")
       
             wrtr= csv.writer(file)
             wrtr.writerow([object_path,labels[o]])
@@ -95,7 +103,7 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
             bboxs[frame_idx][o,:,:] = np.array([[xmn,ymn],[xmx,ymn],[xmn,ymx],[xmx,ymx]]).astype(float)
 
             conn = mysql.connector.connect(
-              host="server2.framenetbr.ufjf.br",
+              host="10.0.75.1",
               user="fnbrasil",
               password="OssracF1982",
               database="webtool_db"
@@ -111,7 +119,7 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
             cursor.close()
             conn.close()
     
-        out.append(cv2.VideoWriter('/home/framenetbr/public_html/charon/data/Output/output.mp4',cv2.VideoWriter_fourcc(*'mp4v'),1,(frames[frame_idx].shape[1],frames[frame_idx].shape[0])))
+        out.append(cv2.VideoWriter(DATA_PATH + "Output/output.mp4",cv2.VideoWriter_fourcc(*'mp4v'),1,(frames[frame_idx].shape[1],frames[frame_idx].shape[0])))
 
         print("End objects generation")
 
@@ -153,11 +161,12 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
 
             cv2.destroyAllWindows()
             out[count].release()
+            print("Ending", count)
             count=count+1
             new = 2
-            url = "http://docker.internal.host:8600/server/track_objects.php"
-            print("ending " + url)
-            webbrowser.open(url,new=new)
+            #url = "http://docker.internal.host:8600/server/track_objects.php"
+            #print("ending " + url)
+            #webbrowser.open(url,new=new)
 
 
             # loop the resulting video (for debugging purpose only)
@@ -168,7 +177,8 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
             
     count1=0
     for frame_idx in range(0,n_frame-10,10):
-        filename= "/var/www/html/data/Video_Frames/frame%d.png" % frame_idx
+        filename= DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
+        print(filename)
         labels,pixels = predict.return_pixels1(filename)
                 
         n_object= len(pixels)
@@ -260,10 +270,13 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
                 else:
                     l.text='0'
 
+            print("Ending count1", count1)
+
     # create a new XML file with the results
     indent(annotation)
     mydata = ET.tostring(annotation)
-    myfile = open("/var/www/html/data/annotations.xml", "wb")
+    print(DATA_PATH + "annotations.xml")
+    myfile = open(DATA_PATH + "annotations.xml", "wb")
     myfile.write(mydata)
 
 def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_to_file=False):
@@ -276,7 +289,7 @@ def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_
     print(bboxs.shape)
     for frame_idx in range(n_frame):
         _, frames[frame_idx] = rawVideo.read()
-        cv2.imwrite( "/home/framenetbr/public_html/charon/data/Video_Frames/frame%d.png" % count, frames[frame_idx])     # save frame as JPEG file
+        cv2.imwrite( DATA_PATH + "Video_Frames/frame%d.png" % count, frames[frame_idx])     # save frame as JPEG file
         count=count+1
 
     count=0
@@ -289,19 +302,19 @@ def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_
             (xmin, ymin, boxw, boxh) = cv2.selectROI("Select Object %d"%(o),frames[frame_idx])
             cv2.destroyWindow("Select Object %d"%(o))
             bboxs[frame_idx][o,:,:] = np.array([[xmin,ymin],[xmin+boxw,ymin],[xmin,ymin+boxh],[xmin+boxw,ymin+boxh]]).astype(float)
-            filename= "/home/framenetbr/public_html/charon/data/Video_Frames/frame%d.png" % frame_idx
+            filename= DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
             im = Image.open(filename) 
             region = im.crop((xmin, ymin, xmin+boxw, ymin+boxh))
-            region.save("/home/framenetbr/public_html/charon/data/Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png")
-            object_path="/home/framenetbr/public_html/charon/data/Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png"
-            file=open("/home/framenetbr/public_html/charon/data/Object_Store/object_annotations.csv","a+")
+            region.save(DATA_PATH + "Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png")
+            object_path=DATA_PATH + "Object_Store/frame_%d"%frame_idx+"_object_%d"%o+".png"
+            file=open(DATA_PATH + "Object_Store/object_annotations.csv","a+")
             wrtr= csv.writer(file)
             label=input("Enter object label")
             labels.append(label)
             wrtr.writerow([object_path,labels[o]])
             file.close()
 
-        out.append(cv2.VideoWriter('/home/framenetbr/public_html/charon/data/Output/output.mp4',cv2.VideoWriter_fourcc(*'mp4v'),1,(frames[frame_idx].shape[1],frames[frame_idx].shape[0])))
+        out.append(cv2.VideoWriter(DATA_PATH + "Output/output.mp4",cv2.VideoWriter_fourcc(*'mp4v'),1,(frames[frame_idx].shape[1],frames[frame_idx].shape[0])))
 
         v=1
             
@@ -351,8 +364,8 @@ def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_
             out[count].release()
 
             new = 2
-            url = "http://charon.local:8600/server/track_objects.php"
-            webbrowser.open(url,new=new)
+            #url = "http://charon.local:8600/server/track_objects.php"
+            #webbrowser.open(url,new=new)
 
 
             # loop the resulting video (for debugging purpose only)
@@ -361,24 +374,35 @@ def objectTracking1(rawVideo,length,fn,draw_bb=False, play_realtime=False, save_
             #         cv2.imshow("win",frames_draw[i])
             #         cv2.waitKey(50)
 
-def detect_and_track(filename,start_time,end_time,val=0):
+def detect_and_track(filename,start_time,end_time,sid,val=0):
     print('========= Detect and Tracking')
+    print(filename)
+    print(start_time)
+    print(end_time)
+    print(val)
+
     arr1=start_time.split('.')
     arr2=end_time.split('.')
     st= int(arr1[0])
     et= int(arr2[0])+1
-    targetname = "/home/framenetbr/public_html/charon/data/Output/test.mp4"
+
+    targetname = DATA_PATH + "Output/test.mp4"
     ffmpeg_extract_subclip(filename, st, et, targetname)
     cap = cv2.VideoCapture(targetname)
-    arr=filename.split('/')
-    fn_arr=arr[2].split('.')
-    fn=fn_arr[0]
+
+    #arr=filename.split('/')
+    #fn_arr=arr[2].split('.')
+    #fn=fn_arr[0]
+    fn=filename.split('/')[-1].split('.')[0]
     print(fn)
+
     length= int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if val==0:
-        objectTracking(cap,length,fn,draw_bb=True,play_realtime=False,save_to_file=True)
+        objectTracking(cap,length,fn,sid,draw_bb=True,play_realtime=False,save_to_file=True)
     if val==1:
         objectTracking1(cap,length,fn,draw_bb=True,play_realtime=False,save_to_file=True)
+        print("ending detect_and_track")
     cap.release()
+    print("ended")
 
 #detect_and_track("Video_Store/full/2bfb129dea9d7d149b79b7bbc96f9d4eb037f8bd.mp4","10.00","20.00",0)
