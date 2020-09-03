@@ -115,8 +115,8 @@ export class Review extends Component {
      sid: this.sid
 }).then((response) => {
      console.log(response.data); 
-     var op=JSON.stringify(response.data);
-     alert(op);
+     //var op=JSON.stringify(response.data);
+     //alert(op);
   });
   }
 
