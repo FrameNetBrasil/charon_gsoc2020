@@ -280,9 +280,9 @@ def objectTracking(rawVideo,length,fn,sid,draw_bb=False, play_realtime=False, sa
     myfile.write(mydata)
     
     conn = mysql.connector.connect(
-              host="localhost",
-              user="root",
-              password="",
+              host="10.0.75.1",
+              user="fnbrasil",
+              password="OssracF1982",
               database="webtool_db"
             )
      v=1
