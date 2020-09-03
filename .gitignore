@@ -22,3 +22,5 @@ yarn-debug.log*
 yarn-error.log*
 package-lock.json
 public/server/model.h5
+public/server/config.ini
+public/server/config.php

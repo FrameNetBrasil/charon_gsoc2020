@@ -21,4 +21,3 @@ $config = [
     'ffprobe.binaries' => '/var/www/html/bin/ffprobe',
 ];
 
-
