@@ -70,7 +70,10 @@ def track():
     # objectTracking.detect_and_track(video_path,start_time,end_time,v)
 
     # return jsonify("See detected objects at /server/display_objects.php and tracking at /server/track_objects.php")
-    return ('{"display": "/server/display_objects.php","track":"/server/track_objects.php"}')
+    #return ('{"display": "/server/display_objects.php","track":"/server/track_objects.php"}')
+    response = flask.jsonify({"display": "/server/display_objects.php","track":"/server/track_objects.php"})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 if __name__ == '__main__':
