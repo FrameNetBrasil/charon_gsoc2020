@@ -71,7 +71,7 @@ def track():
 
     # return jsonify("See detected objects at /server/display_objects.php and tracking at /server/track_objects.php")
     #return ('{"display": "/server/display_objects.php","track":"/server/track_objects.php"}')
-    response = flask.jsonify({"display": "/server/display_objects.php","track":"/server/track_objects.php"})
+    response = jsonify({"display": "/server/display_objects.php","track":"/server/track_objects.php"})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
