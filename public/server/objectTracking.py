@@ -232,8 +232,8 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
 
                 if math.isnan(bboxs[j][o][3, 0]) or math.isnan(bboxs[j][o][3, 1]) or math.isnan(
                         bboxs[j][o][2, 0]) or math.isnan(bboxs[j][o][2, 1]) or math.isnan(
-                        bboxs[j][o][1, 0]) or math.isnan(bboxs[j][o][1, 1]) or math.isnan(
-                        bboxs[j][o][0, 0]) or math.isnan(bboxs[j][o][0, 1]):
+                    bboxs[j][o][1, 0]) or math.isnan(bboxs[j][o][1, 1]) or math.isnan(
+                    bboxs[j][o][0, 0]) or math.isnan(bboxs[j][o][0, 1]):
                     break
                 polygon = ET.SubElement(obj, 'polygon')
                 t = ET.SubElement(polygon, 't')
@@ -287,24 +287,24 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     print(DATA_PATH + "annotations.xml")
     myfile = open(DATA_PATH + "annotations.xml", "wb")
     myfile.write(mydata)
-    
-    conn = mysql.connector.connect(
-              host="10.0.75.1",
-              user="fnbrasil",
-              password="OssracF1982",
-              database="webtool_db"
-            )
-     v=1
-            
-     mySql_insert_query = "INSERT INTO annotationsetmm (annotationPath, idAnnotationSetMM) VALUES ('"+DATA_PATH +"annotations.xml',%d"%1+")"
 
-     print(mySql_insert_query)
-     cursor = conn.cursor()
-     cursor.execute(mySql_insert_query)
-     conn.commit()
-     print(cursor.rowcount, "Record inserted successfully into annotationsetmm table")
-     cursor.close()
-     conn.close()
+    # conn = mysql.connector.connect(
+    #          host="10.0.75.1",
+    #          user="fnbrasil",
+    #          password="OssracF1982",
+    #          database="webtool_db"
+    #        )
+    # v=1
+
+    # mySql_insert_query = "INSERT INTO annotationsetmm (annotationPath, idAnnotationSetMM) VALUES ('"+DATA_PATH +"annotations.xml',%d"%1+")"##
+
+    # print(mySql_insert_query)
+    # cursor = conn.cursor()
+    # cursor.execute(mySql_insert_query)
+    # conn.commit()
+    # print(cursor.rowcount, "Record inserted successfully into annotationsetmm table")
+    # cursor.close()
+    # conn.close()
 
 
 def objectTracking1(rawVideo, length, fn, draw_bb=False, play_realtime=False, save_to_file=False):
