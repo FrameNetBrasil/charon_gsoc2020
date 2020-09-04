@@ -18,6 +18,9 @@ def getFeatures(img,bbox,use_shi=False):
         if not roi.size:
             flag=1
             break
+        if roi.size < 2:
+            flag=1
+            break
         # cv2.imshow('roi',roi)
         if use_shi:
             corner_response = corner_shi_tomasi(roi)
