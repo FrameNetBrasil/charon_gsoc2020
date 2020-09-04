@@ -98,6 +98,18 @@ export class Review extends Component {
     this.modalNewClose();
   }
 
+    uploadSentencesToDb()
+    {
+        axios.post("/server/uploadSentencesToDb.php", {
+            start_time: this.start,
+            end_time: this.end,
+            sid: this.sid
+        }).then(res => {
+                console.log(res);
+                alert(res);
+            });
+    }
+
   get_start_end_ts= (e,val,id1) =>
   {
      e.preventDefault();
@@ -137,6 +149,7 @@ handleClick({nativeEvent}) {
       </div>
       <p>Click on a sentence to track objects in that video clip</p>
     <button id="enter" name="Enter" type="submit" value="Enter" onClick={this.modalOpen.bind(this)}>Save Sentences</button>
+    <button id="uploaddb" name="uploaddb" type="submit" value="uploaddb" onClick={this.uploadSentencesToDb()}>Upload Sentences to Db</button>
     <Modal show={this.state.modal} handleClose={e => this.modalClose(e)}>
             <form name="form" enctype="multipart/form-data">
                 <label>Are you sure you want to save the sentences? Choose Yes to save and No to add own data</label>
