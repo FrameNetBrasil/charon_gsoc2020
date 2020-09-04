@@ -380,6 +380,7 @@ def objectTracking1(rawVideo, length, fn, draw_bb=False, play_realtime=False, sa
                     startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
 
                 # draw bounding box and visualize feature point for each object
+                print("draw bounding box")
                 frames_draw[i] = frames[i].copy()
                 for j in range(0, n_object):
                     (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j, :, :].astype(int))
