@@ -284,8 +284,8 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     # create a new XML file with the results
     indent(annotation)
     mydata = ET.tostring(annotation)
-    print(DATA_PATH + "annotations.xml")
-    myfile = open(DATA_PATH + "annotations.xml", "wb")
+    print(DATA_PATH + "/Object_Store/" + fn + ".xml")
+    myfile = open(DATA_PATH + "/Object_Store/" + fn + ".xml", "wb")
     myfile.write(mydata)
 
     # conn = mysql.connector.connect(
