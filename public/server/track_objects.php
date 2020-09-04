@@ -121,7 +121,5 @@ class VideoStream
     }
 }
 
-$stream = new VideoStream('/var/www/html/data/Output/test.mp4');
+$stream = new VideoStream('/var/www/html/data/Output/output.mp4');
 $stream->start();
-
-?>
