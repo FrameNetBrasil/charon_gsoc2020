@@ -62,7 +62,7 @@ def track():
     os.chdir(origdir)
 
     # objectTracking.detect_and_track(video_path,sid,start_time,end_time,v)
-    objectTracking.detect_and_track(video_path, start_time, end_time, sid)
+    vatic = objectTracking.detect_and_track(video_path, start_time, end_time, sid)
 
     # val=input("Enter yes if satisfied with detected objects and no to create and track own objects...")
     # if val=="no":
@@ -71,7 +71,7 @@ def track():
 
     # return jsonify("See detected objects at /server/display_objects.php and tracking at /server/track_objects.php")
     #return ('{"display": "/server/display_objects.php","track":"/server/track_objects.php"}')
-    response = jsonify({"display": "/server/display_objects.php","track":"/server/track_objects.php"})
+    response = jsonify({"vatic": vatic})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 

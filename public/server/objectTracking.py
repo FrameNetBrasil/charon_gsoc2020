@@ -284,9 +284,10 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     # create a new XML file with the results
     indent(annotation)
     mydata = ET.tostring(annotation)
-    print(DATA_PATH + "/Object_Store/" + fn + ".xml")
-    myfile = open(DATA_PATH + "/Object_Store/" + fn + ".xml", "wb")
+    print(DATA_PATH + "Object_Store/" + fn + ".xml")
+    myfile = open(DATA_PATH + "Object_Store/" + fn + ".xml", "wb")
     myfile.write(mydata)
+    return "/Object_Store/" + fn + ".xml"
 
     # conn = mysql.connector.connect(
     #          host="10.0.75.1",
@@ -431,13 +432,15 @@ def detect_and_track(filename, start_time, end_time, sid, val=0):
     fn = filename.split('/')[-1].split('.')[0]
     print(fn)
 
+    vatic = ""
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if val == 0:
-        objectTracking(cap, length, fn, sid, draw_bb=True, play_realtime=False, save_to_file=True)
+        vatic = objectTracking(cap, length, fn, sid, draw_bb=True, play_realtime=False, save_to_file=True)
     if val == 1:
-        objectTracking1(cap, length, fn, draw_bb=True, play_realtime=False, save_to_file=True)
+        vatic = objectTracking1(cap, length, fn, draw_bb=True, play_realtime=False, save_to_file=True)
         print("ending detect_and_track")
     cap.release()
-    print("ended")
+    print("ended ", vatic)
+    return vatic
 
 # detect_and_track("Video_Store/full/2bfb129dea9d7d149b79b7bbc96f9d4eb037f8bd.mp4","10.00","20.00",0)
