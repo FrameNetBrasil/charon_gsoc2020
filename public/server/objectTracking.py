@@ -424,6 +424,7 @@ def detect_and_track(filename, start_time, end_time, sid, val=0):
 
     targetname = DATA_PATH + "Output/test.mp4"
     ffmpeg_extract_subclip(filename, st, et, targetname)
+    print("capturing video")
     cap = cv2.VideoCapture(targetname)
 
     # arr=filename.split('/')
@@ -435,6 +436,7 @@ def detect_and_track(filename, start_time, end_time, sid, val=0):
     vatic = ""
     cap.set(cv2.CAP_PROP_FPS, 25)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    print("end capturing video - length = ", length)
     if val == 0:
         vatic = objectTracking(cap, length, fn, sid, draw_bb=True, play_realtime=False, save_to_file=True)
     if val == 1:
