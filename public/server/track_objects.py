@@ -1,3 +1,4 @@
+#!/usr/bin/python3
 from flask import Flask, render_template, request, jsonify
 from flask_cors import CORS
 import requests
@@ -22,6 +23,11 @@ print(PATH_TO_VIDEO_DIR)
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app)
+
+
+@app.route('/hello', methods=['GET', 'POST'])
+def hello():
+    return jsonify('hello')
 
 
 @app.route('/track', methods=['GET', 'POST'])
