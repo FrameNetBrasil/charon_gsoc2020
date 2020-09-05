@@ -433,6 +433,7 @@ def detect_and_track(filename, start_time, end_time, sid, val=0):
     print(fn)
 
     vatic = ""
+    cap.set(cv2.CAP_PROP_FPS, 25)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     if val == 0:
         vatic = objectTracking(cap, length, fn, sid, draw_bb=True, play_realtime=False, save_to_file=True)
