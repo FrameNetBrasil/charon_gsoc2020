@@ -50,9 +50,9 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         actual_idx = frame_idx + startFrame
         frames[frame_idx] = cv2.imread(frames_path + "/frame%d.png" % actual_idx)
 
-    labelsByFrame = []
-    boxesByFrame = []
-    pixelsByFrame = []
+    labelsByFrame = {}
+    boxesByFrame = {}
+    pixelsByFrame = {}
 
     bboxs = np.empty((n_frame,), dtype=np.ndarray)
     for frame_idx in range(0, n_frame - 10, 10):
