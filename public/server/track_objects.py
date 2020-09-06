@@ -36,7 +36,7 @@ def frames():
     url_video = request.json['url_video']
     print(url_video)
     filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
-    sha1 = filename.split('.')[-2]
+    sha1 = url_video.split('/')[-1].split('.')[-2]
     print(filename)
     print(sha1)
 
