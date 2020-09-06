@@ -65,7 +65,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         boxesByFrame[actual_idx] = boxes
         pixelsByFrame[actual_idx] = pixels
         n_object = len(pixels)
-        print(n_object)
+        print("n_object = ",n_object)
         print(len(labels))
         bboxs[frame_idx] = np.empty((n_object, 4, 2), dtype=float)
         for o in range(0, n_object):
@@ -76,15 +76,15 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             ymn = pixels[o][2]
             ymx = pixels[o][3]
 
-            im = Image.open(filename)
-            region = im.crop((xmn, ymn, xmx, ymx))
+            #im = Image.open(filename)
+            #region = im.crop((xmn, ymn, xmx, ymx))
 
-            object_path = objects_path + "/sentence_%s" % idSentence + "/frame_%d" % actual_idx + "_object_%d" % o + ".png"
-            region.save(object_path)
+            #object_path = objects_path + "/sentence_%s" % idSentence + "/frame_%d" % actual_idx + "_object_%d" % o + ".png"
+            #region.save(object_path)
 
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
+        print(bboxs[frame_idx])
 
-    print(bboxs)
     print("End objects generation")
 
     # create the VATIC xml file structure
@@ -121,6 +121,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
         labels = labelsByFrame[actual_idx]
         n_object = len(pixels)
+        print("n_object = ",n_object)
+        print(pixels);
         for o in range(0, n_object):
             obj = ET.SubElement(annotation, 'object')
             name = ET.SubElement(obj, 'name')
