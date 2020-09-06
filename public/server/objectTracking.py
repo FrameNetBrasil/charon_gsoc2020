@@ -42,21 +42,6 @@ def indent(elem, level=0):
 def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, draw_bb=True, play_realtime=False, save_to_file=True):
     # initialize
     print('========= Object tracking')
-
-    # create the VATIC xml file structure
-    annotation = ET.Element('annotation')
-    folder = ET.SubElement(annotation, 'folder')
-    filename = ET.SubElement(annotation, 'filename')
-    folder.text = 'not available'
-    filename.text = 'not available'
-    source = ET.SubElement(annotation, 'source')
-    typ = ET.SubElement(source, 'type')
-    sourceImage = ET.SubElement(source, 'sourceImage')
-    sourceAnnotation = ET.SubElement(source, 'sourceAnnotation')
-    typ.text = 'video'
-    sourceImage.text = 'vatic frames'
-    sourceAnnotation.text = 'vatic'
-
     #get the frames array
     # n_frame (relative)
     n_frame = endFrame - startFrame + 1;
@@ -65,6 +50,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         actual_idx = frame_idx + startFrame
         frames[frame_idx] = cv2.imread(frames_path + "/frame%d.png" % actual_idx)
 
+    bboxs = np.empty((n_frame,), dtype=np.ndarray)
     for frame_idx in range(0, n_frame - 10, 10):
         actual_idx = frame_idx + startFrame
         print("== frame_idx = ", frame_idx)
@@ -92,6 +78,20 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
 
     print("End objects generation")
+
+    # create the VATIC xml file structure
+    annotation = ET.Element('annotation')
+    folder = ET.SubElement(annotation, 'folder')
+    filename = ET.SubElement(annotation, 'filename')
+    folder.text = 'not available'
+    filename.text = 'not available'
+    source = ET.SubElement(annotation, 'source')
+    typ = ET.SubElement(source, 'type')
+    sourceImage = ET.SubElement(source, 'sourceImage')
+    sourceAnnotation = ET.SubElement(source, 'sourceAnnotation')
+    typ.text = 'video'
+    sourceImage.text = 'vatic frames'
+    sourceAnnotation.text = 'vatic'
 
     #actual number of frames in folder
     last_frame = len([name for name in os.listdir(frames_path) if os.path.isfile(name)]) - 1;
