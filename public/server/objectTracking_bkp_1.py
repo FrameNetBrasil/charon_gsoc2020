@@ -65,6 +65,9 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         actual_idx = frame_idx + startFrame
         frames[frame_idx] = cv2.imread(frames_path + "/frame%d.png" % actual_idx)
 
+    count = 0
+    count1 = 0
+    out = []
     for frame_idx in range(0, n_frame - 10, 10):
         actual_idx = frame_idx + startFrame
         print("== frame_idx = ", frame_idx)
@@ -89,19 +92,77 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             object_path = objects_path + "/sentence_%s" % idSentence + "/frame_%d" % actual_idx + "_object_%d" % o + ".png"
             region.save(object_path)
 
+            # CSV objects files
+            #file = open(objects_path + "/object_annotations.csv", "a+")
+            #wrtr = csv.writer(file)
+            #wrtr.writerow([object_path, labels[o]])
+            #file.close()
+
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
+
+    # output video
+    # out.append(cv2.VideoWriter(DATA_PATH + "Output/output.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 1,
+    #                           (frames[frame_idx].shape[1], frames[frame_idx].shape[0])))
 
     print("End objects generation")
 
-    #actual number of frames in folder
-    last_frame = len([name for name in os.listdir(frames_path) if os.path.isfile(name)]) - 1;
+"""
+        startXs, startYs = getFeatures(cv2.cvtColor(frames[frame_idx], cv2.COLOR_RGB2GRAY), bboxs[frame_idx],
+                                       use_shi=False)
+        if startXs.all() == -1 and startYs.all() == -1:
+            continue
+        else:
+            for i in range(frame_idx + 1, frame_idx + 10):
+                print('Processing Frame', i)
+                newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i - 1], frames[i])
+                Xs, Ys, bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i - 1])
+
+                print(bboxs[i])
+
+                # update coordinates
+                startXs = Xs
+                startYs = Ys
+
+                # update feature points as required
+                n_features_left = np.sum(Xs != -1)
+                print('# of Features: %d' % n_features_left)
+                if (n_features_left > 0) and (n_features_left < 15):
+                    print('Generate New Features')
+                    startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
+
+                # draw bounding box and visualize feature point for each object
+                frames_draw[i] = frames[i].copy()
+                for j in range(0, n_object):
+                    (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j, :, :].astype(int))
+                    frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin, ymin), (xmin + boxw, ymin + boxh),
+                                                   (255, 0, 0), 2)
+                    for k in range(startXs.shape[0]):
+                        frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k, j]), int(startYs[k, j])), 3,
+                                                    (0, 0, 255), thickness=2)
+
+                # imshow if to play the result in real time
+                if play_realtime:
+                    cv2.imshow("win", frames_draw[i])
+                    cv2.waitKey(10)
+                out[count].write(frames_draw[i])
+
+            cv2.destroyAllWindows()
+            out[count].release()
+            print("Ending", count)
+            count = count + 1
+            new = 2
+"""
+
     count1 = 0
     for frame_idx in range(0, n_frame - 10, 10):
-        filename = frames_path + "frame%d.png" % actual_idx
+        filename = DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
         print(filename)
         labels, pixels = predict.return_pixels1(filename)
+
         n_object = len(pixels)
+
         for o in range(0, n_object):
+
             obj = ET.SubElement(annotation, 'object')
             name = ET.SubElement(obj, 'name')
             moving = ET.SubElement(obj, 'moving')
@@ -119,11 +180,10 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             id1.text = str(count1)
             createdFrame.text = '0'
-            startFrame.text = '0' #str(frame_idx)
-            endFrame.text = str(last_frame) #str(frame_idx + 10)
+            startFrame.text = str(frame_idx)
+            endFrame.text = str(frame_idx + 10)
 
             for j in range(frame_idx, frame_idx + 10):
-                actual_idx = frame_idx + startFrame
 
                 if bboxs[j][o][0, 0] < 0:
                     bboxs[j][o][0, 0] = 0.0
@@ -149,7 +209,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
                     break
                 polygon = ET.SubElement(obj, 'polygon')
                 t = ET.SubElement(polygon, 't')
-                t.text = str(actual_idx) #str(j)
+                t.text = str(j)
                 pt = ET.SubElement(polygon, 'pt')
                 x = ET.SubElement(pt, 'x')
                 y = ET.SubElement(pt, 'y')
@@ -196,11 +256,10 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     # create a new XML file with the results
     indent(annotation)
     mydata = ET.tostring(annotation)
-    xml_path = objects_path + "/sentence_%s" % idSentence + ".xml"
-    print(xml_path)
-    myfile = open(xml_path, "wb")
+    print(DATA_PATH + "Object_Store/" + fn + ".xml")
+    myfile = open(DATA_PATH + "Object_Store/" + fn + ".xml", "wb")
     myfile.write(mydata)
-    return xml_path
+    return "/Object_Store/" + fn + ".xml"
 
 def writeFrames(videoCap, length, path):
     print('========= write frames path = ', path)
