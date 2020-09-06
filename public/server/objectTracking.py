@@ -316,7 +316,7 @@ def writeFrames(videoCap, length, path):
     #print(frames.shape)
     success = True
     while success:
-        #vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 1000))  # added this line
+        vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 40))  # added this line
         success, image = videoCap.read()
         print('Read a new frame: ', success)
         if success:
@@ -348,8 +348,8 @@ def generate_frames(filename, path):
         writeFrames(videoCap, length, path)
     else :
         print("error reading videocap")
-    cap.release()
-    print("ended generate frames ", length)
+    videoCap.release()
+    print("ended generate frames")
     return length
 
 def detect_and_track(filename, start_time, end_time, sid, val=0):
