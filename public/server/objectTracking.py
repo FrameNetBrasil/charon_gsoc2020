@@ -54,6 +54,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     boxesByFrame = {}
     pixelsByFrame = {}
 
+    count = 0
     bboxs = np.empty((n_frame,), dtype=np.ndarray)
     for frame_idx in range(0, n_frame - 10, 10):
         actual_idx = frame_idx + startFrame
