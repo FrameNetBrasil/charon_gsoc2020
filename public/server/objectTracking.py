@@ -83,9 +83,47 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             #region.save(object_path)
 
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
-        print(bboxs[frame_idx])
+
+        startXs, startYs = getFeatures(cv2.cvtColor(frames[frame_idx], cv2.COLOR_RGB2GRAY), bboxs[frame_idx],
+                                   use_shi=False)
+        if startXs.all() == -1 and startYs.all() == -1:
+            continue
+        else:
+            for i in range(frame_idx + 1, frame_idx + 10):
+                print('Processing Frame', i)
+                newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i - 1], frames[i])
+                Xs, Ys, bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i - 1])
+
+                #print(bboxs[i])
+
+                # update coordinates
+                startXs = Xs
+                startYs = Ys
+
+                # update feature points as required
+                n_features_left = np.sum(Xs != -1)
+                print('# of Features: %d' % n_features_left)
+                if (n_features_left > 0) and (n_features_left < 15):
+                    print('Generate New Features')
+                    startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
+
+                # draw bounding box and visualize feature point for each object
+                #frames_draw[i] = frames[i].copy()
+                #for j in range(0, n_object):
+                #    (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j, :, :].astype(int))
+                #    frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin, ymin), (xmin + boxw, ymin + boxh),
+                #                               (255, 0, 0), 2)
+                #    for k in range(startXs.shape[0]):
+                #        frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k, j]), int(startYs[k, j])), 3,
+                #                                (0, 0, 255), thickness=2)
+
+            cv2.destroyAllWindows()
+            #out[count].release()
+            print("Ending", count)
+            count = count + 1
 
     print("End objects generation")
+
 
     # create the VATIC xml file structure
     annotation = ET.Element('annotation')
