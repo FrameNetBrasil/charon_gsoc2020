@@ -50,7 +50,7 @@ def frames():
     os.mkdir(sha1)
     os.chdir(DATA_PATH + 'Video_Frames')
 
-    frames = objectTracking.generate_frames(filename, DATA_PATH + 'Video_frames/' + sha1)
+    frames = objectTracking.generate_frames(filename, DATA_PATH + 'Video_Frames/' + sha1)
 
     response = jsonify({"frames": frames})
     response.headers.add('Access-Control-Allow-Origin', '*')
