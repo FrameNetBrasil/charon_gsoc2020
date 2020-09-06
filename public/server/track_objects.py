@@ -36,14 +36,14 @@ def frames():
     url_video = request.json['url_video']
     print(url_video)
     filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
-    sha1 = url_video.split('/')[-1].split('.')[-2]
     print(filename)
-    print(sha1)
 
     with urllib.request.urlopen(url_video) as data:
         with open(filename, "wb") as out:
             shutil.copyfileobj(data, out)
 
+    sha1 = url_video.split('/')[-1].split('.')[-2]
+    print(sha1)
     os.chdir(DATA_PATH + 'Video_Frames')
     if os.path.isdir(sha1) == True:
         shutil.rmtree(sha1)
