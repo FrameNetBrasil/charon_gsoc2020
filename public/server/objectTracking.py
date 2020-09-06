@@ -308,28 +308,45 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     # conn.close()
 
 
-def writeFrames(rawVideo, length, path):
+def writeFrames(videoCap, length, path):
     print('========= write frames path = ', path)
-    n_frame = length - 10
+    #n_frame = length - 10
     count = 0
-    frames = np.empty((n_frame,), dtype=np.ndarray)
-    print(frames.shape)
-    for frame_idx in range(n_frame):
-        _, frames[frame_idx] = rawVideo.read()
-        if frames[frame_idx] is None:
-            break
-        cv2.imwrite(path + "/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
+    #frames = np.empty((n_frame,), dtype=np.ndarray)
+    #print(frames.shape)
+    success = True
+    while success:
+        #vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 1000))  # added this line
+        success, image = videoCap.read()
+        print('Read a new frame: ', success)
+        cv2.imwrite(path + "/frame%d.jpg" % count, image)  # save frame as JPEG file
         count = count + 1
-    n_frame = count
-    print("n frame count = ", n_frame)
+
+    #n_frame = length - 10
+    #count = 0
+    #frames = np.empty((n_frame,), dtype=np.ndarray)
+    #print(frames.shape)
+    #for frame_idx in range(n_frame):
+    #    _, frames[frame_idx] = rawVideo.read()
+    #    if frames[frame_idx] is None:
+    #        break
+    #    cv2.imwrite(path + "/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
+    #    count = count + 1
+    #n_frame = count
+    #print("n frame count = ", n_frame)
+    print("n frame count = ", count)
 
 def generate_frames(filename, path):
     print('========= Generating frames')
-    print("capturing video")
-    cap = cv2.VideoCapture(filename)
-    cap.set(cv2.CAP_PROP_FPS, 25)
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    writeFrames(cap, length, path)
+    print("capturing video ", filename)
+    videoCap = cv2.VideoCapture(filename)
+    success, image = videoCap.read()
+    if success:
+        # cap.set(cv2.CAP_PROP_FPS, 25)
+        length = int(videoCap.get(cv2.CAP_PROP_FRAME_COUNT))
+        writeFrames(videoCap, length, path)
+    else :
+        print("error reading videocap")
     cap.release()
     print("ended generate frames ", length)
     return length
