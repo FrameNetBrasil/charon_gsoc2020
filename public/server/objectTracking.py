@@ -84,6 +84,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
 
+    print(bboxs)
     print("End objects generation")
 
     # create the VATIC xml file structure
