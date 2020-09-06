@@ -60,9 +60,9 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         print("== frame_idx = ", frame_idx)
         print("== actual_idx = ", actual_idx)
         filename = frames_path + "/frame%d.png" % actual_idx
-        labels, boxes, pixels = predict.return_pixels(filename)
+        labels, pixels = predict.return_pixels1(filename)
         labelsByFrame[actual_idx] = labels
-        boxesByFrame[actual_idx] = boxes
+        #boxesByFrame[actual_idx] = boxes
         pixelsByFrame[actual_idx] = pixels
         n_object = len(pixels)
         print("n_object = ",n_object)
@@ -109,17 +109,18 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         #filename = frames_path + "/frame%d.png" % actual_idx
         #print(filename)
         #labels, pixels = predict.return_pixels1(filename)
-        pixels = []
-        v_boxes = boxesByFrame[actual_idx]
-        for i in range(len(v_boxes)):
-            box = v_boxes[i]
-            # get coordinates
-            y1, x1, y2, x2 = box.ymin, box.xmin, box.ymax, box.xmax
-            if y1 < 0: y1 = 0
-            if x1 < 0: x1 = 0
-            pixels.append((x1, x2, y1, y2))
+        #pixels = []
+        #v_boxes = boxesByFrame[actual_idx]
+        #for i in range(len(v_boxes)):
+        #    box = v_boxes[i]
+        #    # get coordinates
+        #    y1, x1, y2, x2 = box.ymin, box.xmin, box.ymax, box.xmax
+        #    if y1 < 0: y1 = 0
+        #    if x1 < 0: x1 = 0
+        #    pixels.append((x1, x2, y1, y2))
 
         labels = labelsByFrame[actual_idx]
+        pixels = pixelsByFrame[actual_idx]
         n_object = len(pixels)
         print("n_object = ",n_object)
         print(pixels);
@@ -149,6 +150,12 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
                 print("o = ", o)
                 print("j = ", j)
 
+                if math.isnan(bboxs[j][o][3, 0]) or math.isnan(bboxs[j][o][3, 1]) or math.isnan(
+                        bboxs[j][o][2, 0]) or math.isnan(bboxs[j][o][2, 1]) or math.isnan(
+                    bboxs[j][o][1, 0]) or math.isnan(bboxs[j][o][1, 1]) or math.isnan(
+                    bboxs[j][o][0, 0]) or math.isnan(bboxs[j][o][0, 1]):
+                    break
+
                 if bboxs[j][o][0, 0] < 0:
                     bboxs[j][o][0, 0] = 0.0
                 if bboxs[j][o][0, 1] < 0:
@@ -166,11 +173,6 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
                 if bboxs[j][o][3, 1] < 0:
                     bboxs[j][o][3, 1] = 0.0
 
-                if math.isnan(bboxs[j][o][3, 0]) or math.isnan(bboxs[j][o][3, 1]) or math.isnan(
-                        bboxs[j][o][2, 0]) or math.isnan(bboxs[j][o][2, 1]) or math.isnan(
-                    bboxs[j][o][1, 0]) or math.isnan(bboxs[j][o][1, 1]) or math.isnan(
-                    bboxs[j][o][0, 0]) or math.isnan(bboxs[j][o][0, 1]):
-                    break
                 polygon = ET.SubElement(obj, 'polygon')
                 t = ET.SubElement(polygon, 't')
                 t.text = str(actual_idx) #str(j)
