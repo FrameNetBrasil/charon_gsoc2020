@@ -309,6 +309,7 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
 
 
 def writeFrames(rawVideo, length, path):
+    print('========= write frames path = ', path)
     # initialize
     n_frame = length - 10
     count = 0
