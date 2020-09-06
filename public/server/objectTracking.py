@@ -39,11 +39,11 @@ def indent(elem, level=0):
             elem.tail = i
 
 
-def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False, save_to_file=False):
+def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, draw_bb=True, play_realtime=False, save_to_file=True):
     # initialize
     print('========= Object tracking')
 
-    # create the file structure
+    # create the VATIC xml file structure
     annotation = ET.Element('annotation')
     folder = ET.SubElement(annotation, 'folder')
     filename = ET.SubElement(annotation, 'filename')
@@ -57,27 +57,19 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     sourceImage.text = 'vatic frames'
     sourceAnnotation.text = 'vatic'
 
-    n_frame = length - 10
-    count = 0
-    frames = np.empty((n_frame,), dtype=np.ndarray)
-    frames_draw = np.empty((n_frame,), dtype=np.ndarray)
-    bboxs = np.empty((n_frame,), dtype=np.ndarray)
-    print(bboxs.shape)
+    #get the frames array
+    frames = []
+    # n_frame (relative)
+    n_frame = endFrame - startFrame + 1;
     for frame_idx in range(n_frame):
-        _, frames[frame_idx] = rawVideo.read()
-        if frames[frame_idx] is None:
-            break
-        cv2.imwrite(DATA_PATH + "Video_Frames/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
-        count = count + 1
-    n_frame = count
-    print("n frame count = ", n_frame)
+        actual_idx = frame_idx + startFrame
+        frames[frame_idx] = cv2.imread(frames_path + "/frame%d.png" % actual_idx)
 
-    count = 0
-    count1 = 0
-    out = []
     for frame_idx in range(0, n_frame - 10, 10):
-        print("== frame_idx = " + str(frame_idx))
-        filename = DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
+        actual_idx = frame_idx + startFrame
+        print("== frame_idx = ", frame_idx)
+        print("== actual_idx = ", actual_idx)
+        filename = frames_path + "/frame%d.png" % actual_idx
         labels, pixels = predict.return_pixels(filename)
         n_object = len(pixels)
         print(n_object)
@@ -94,103 +86,22 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
             im = Image.open(filename)
             region = im.crop((xmn, ymn, xmx, ymx))
 
-            region.save(
-                DATA_PATH + "Object_Store/" + fn + "/sentence_%s" % sid + "/frame_%d" % frame_idx + "_object_%d" % o + ".png")
-            object_path = DATA_PATH + "Object_Store/" + fn + "/sentence_%s" % sid + "/frame_%d" % frame_idx + "_object_%d" % o + ".png"
-            file = open(DATA_PATH + "Object_Store/object_annotations.csv", "a+")
-
-            wrtr = csv.writer(file)
-            wrtr.writerow([object_path, labels[o]])
-            file.close()
+            object_path = objects_path + "/sentence_%s" % idSentence + "/frame_%d" % actual_idx + "_object_%d" % o + ".png"
+            region.save(object_path)
 
             bboxs[frame_idx][o, :, :] = np.array([[xmn, ymn], [xmx, ymn], [xmn, ymx], [xmx, ymx]]).astype(float)
 
-            # conn = mysql.connector.connect(
-            #  host=config.get("charon", "host"),
-            #  user=config.get("charon", "user"),
-            #  password=config.get("charon", "passwd"),
-            #  database=config.get("charon", "dbname")
-            # )
-            # v=1
+    print("End objects generation")
 
-            # mySql_insert_query = "INSERT INTO objectmm (name, startFrame, endFrame, status, idAnnotationSetMM) VALUES ('frame%d_"%frame_idx+"object%d_"%o+labels[o]+"',%d"%frame_idx+",%d"%(frame_idx+9)+",%d"%v+",%d"%1+")"
-            # print(mySql_insert_query)
-            # cursor = conn.cursor()
-            # cursor.execute(mySql_insert_query)
-            # conn.commit()
-            # print(cursor.rowcount, "Record inserted successfully into ObjectMM table")
-            # cursor.close()
-            # conn.close()
-
-        out.append(cv2.VideoWriter(DATA_PATH + "Output/output.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 1,
-                                   (frames[frame_idx].shape[1], frames[frame_idx].shape[0])))
-
-        print("End objects generation")
-
-        startXs, startYs = getFeatures(cv2.cvtColor(frames[frame_idx], cv2.COLOR_RGB2GRAY), bboxs[frame_idx],
-                                       use_shi=False)
-        if startXs.all() == -1 and startYs.all() == -1:
-            continue
-        else:
-            for i in range(frame_idx + 1, frame_idx + 10):
-                print('Processing Frame', i)
-                newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i - 1], frames[i])
-                Xs, Ys, bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i - 1])
-
-                print(bboxs[i])
-
-                # update coordinates
-                startXs = Xs
-                startYs = Ys
-
-                # update feature points as required
-                n_features_left = np.sum(Xs != -1)
-                print('# of Features: %d' % n_features_left)
-                if (n_features_left > 0) and (n_features_left < 15):
-                    print('Generate New Features')
-                    startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
-
-                # draw bounding box and visualize feature point for each object
-                frames_draw[i] = frames[i].copy()
-                for j in range(0, n_object):
-                    (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j, :, :].astype(int))
-                    frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin, ymin), (xmin + boxw, ymin + boxh),
-                                                   (255, 0, 0), 2)
-                    for k in range(startXs.shape[0]):
-                        frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k, j]), int(startYs[k, j])), 3,
-                                                    (0, 0, 255), thickness=2)
-
-                # imshow if to play the result in real time
-                if play_realtime:
-                    cv2.imshow("win", frames_draw[i])
-                    cv2.waitKey(10)
-                out[count].write(frames_draw[i])
-
-            cv2.destroyAllWindows()
-            out[count].release()
-            print("Ending", count)
-            count = count + 1
-            new = 2
-            # url = "http://docker.internal.host:8600/server/track_objects.php"
-            # print("ending " + url)
-            # webbrowser.open(url,new=new)
-
-            # loop the resulting video (for debugging purpose only)
-            # while 1:
-            #     for i in range(1,n_frame):
-            #         cv2.imshow("win",frames_draw[i])
-            #         cv2.waitKey(50)
-
+    #actual number of frames in folder
+    last_frame = len([name for name in os.listdir(frames_path) if os.path.isfile(name)]) - 1;
     count1 = 0
     for frame_idx in range(0, n_frame - 10, 10):
-        filename = DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
+        filename = frames_path + "frame%d.png" % actual_idx
         print(filename)
         labels, pixels = predict.return_pixels1(filename)
-
         n_object = len(pixels)
-
         for o in range(0, n_object):
-
             obj = ET.SubElement(annotation, 'object')
             name = ET.SubElement(obj, 'name')
             moving = ET.SubElement(obj, 'moving')
@@ -208,10 +119,11 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
 
             id1.text = str(count1)
             createdFrame.text = '0'
-            startFrame.text = str(frame_idx)
-            endFrame.text = str(frame_idx + 10)
+            startFrame.text = '0' #str(frame_idx)
+            endFrame.text = str(last_frame) #str(frame_idx + 10)
 
             for j in range(frame_idx, frame_idx + 10):
+                actual_idx = frame_idx + startFrame
 
                 if bboxs[j][o][0, 0] < 0:
                     bboxs[j][o][0, 0] = 0.0
@@ -237,7 +149,7 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
                     break
                 polygon = ET.SubElement(obj, 'polygon')
                 t = ET.SubElement(polygon, 't')
-                t.text = str(j)
+                t.text = str(actual_idx) #str(j)
                 pt = ET.SubElement(polygon, 'pt')
                 x = ET.SubElement(pt, 'x')
                 y = ET.SubElement(pt, 'y')
@@ -284,29 +196,11 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     # create a new XML file with the results
     indent(annotation)
     mydata = ET.tostring(annotation)
-    print(DATA_PATH + "Object_Store/" + fn + ".xml")
-    myfile = open(DATA_PATH + "Object_Store/" + fn + ".xml", "wb")
+    xml_path = objects_path + "/sentence_%s" % idSentence + ".xml"
+    print(xml_path)
+    myfile = open(xml_path, "wb")
     myfile.write(mydata)
-    return "/Object_Store/" + fn + ".xml"
-
-    # conn = mysql.connector.connect(
-    #          host="10.0.75.1",
-    #          user="fnbrasil",
-    #          password="OssracF1982",
-    #          database="webtool_db"
-    #        )
-    # v=1
-
-    # mySql_insert_query = "INSERT INTO annotationsetmm (annotationPath, idAnnotationSetMM) VALUES ('"+DATA_PATH +"annotations.xml',%d"%1+")"##
-
-    # print(mySql_insert_query)
-    # cursor = conn.cursor()
-    # cursor.execute(mySql_insert_query)
-    # conn.commit()
-    # print(cursor.rowcount, "Record inserted successfully into annotationsetmm table")
-    # cursor.close()
-    # conn.close()
-
+    return xml_path
 
 def writeFrames(videoCap, length, path):
     print('========= write frames path = ', path)
@@ -318,23 +212,10 @@ def writeFrames(videoCap, length, path):
     while success:
         videoCap.set(cv2.CAP_PROP_POS_MSEC, (count * 40))  # added this line
         success, image = videoCap.read()
-        print('Read a new frame: ', success)
+        #print('Read a new frame: ', success)
         if success:
             cv2.imwrite(path + "/frame%d.jpg" % count, image)  # save frame as JPEG file
             count = count + 1
-
-    #n_frame = length - 10
-    #count = 0
-    #frames = np.empty((n_frame,), dtype=np.ndarray)
-    #print(frames.shape)
-    #for frame_idx in range(n_frame):
-    #    _, frames[frame_idx] = rawVideo.read()
-    #    if frames[frame_idx] is None:
-    #        break
-    #    cv2.imwrite(path + "/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
-    #    count = count + 1
-    #n_frame = count
-    #print("n frame count = ", n_frame)
     print("n frame count = ", count)
 
 def generate_frames(filename, path):
@@ -352,40 +233,26 @@ def generate_frames(filename, path):
     print("ended generate frames")
     return length
 
-def detect_and_track(filename, start_time, end_time, sid, val=0):
+def detect_and_track(frames_path, objects_path, start_time, end_time, idSentence):
     print('========= Detect and Tracking')
-    print(filename)
+    print(frames_path)
     print(start_time)
     print(end_time)
-    print(val)
 
-    arr1 = start_time.split('.')
-    arr2 = end_time.split('.')
-    st = int(arr1[0])
-    et = int(arr2[0]) + 1
+    startTimeSplit = start_time.split('.')
+    endTimeSplit = end_time.split('.')
+    startTimeMiliseconds = (int(startTimeSplit[0]) * 1000) + int(startTimeSplit[1]);
+    endTimeMiliseconds = (int(endTimeSplit[0]) * 1000) + int(endTimeSplit[1]);
 
-    targetname = DATA_PATH + "Output/test.mp4"
-    ffmpeg_extract_subclip(filename, st, et, targetname)
-    print("capturing video")
-    cap = cv2.VideoCapture(targetname)
+    print("start time (ms) = ", startTimeMiliseconds)
+    print("end time (ms) = ", endTimeMiliseconds)
 
-    # arr=filename.split('/')
-    # fn_arr=arr[2].split('.')
-    # fn=fn_arr[0]
-    fn = filename.split('/')[-1].split('.')[0]
-    print(fn)
+    # (25fps) - one frame at each 40ms
+    startFrame = int(startTimeMiliseconds / 40)
+    endFrame = int(endTimeMiliseconds / 40)
 
-    vatic = ""
-    cap.set(cv2.CAP_PROP_FPS, 25)
-    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-    print("end capturing video - length = ", length)
-    if val == 0:
-        vatic = objectTracking(cap, length, fn, sid, draw_bb=True, play_realtime=False, save_to_file=True)
-    if val == 1:
-        vatic = objectTracking1(cap, length, fn, draw_bb=True, play_realtime=False, save_to_file=True)
-        print("ending detect_and_track")
-    cap.release()
-    print("ended ", vatic)
+    vatic = objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, draw_bb=True, play_realtime=False, save_to_file=True)
+    print("ended detect and track ", vatic)
     return vatic
 
 # detect_and_track("Video_Store/full/2bfb129dea9d7d149b79b7bbc96f9d4eb037f8bd.mp4","10.00","20.00",0)
