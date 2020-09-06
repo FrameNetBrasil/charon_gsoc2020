@@ -60,6 +60,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     #get the frames array
     # n_frame (relative)
     n_frame = endFrame - startFrame + 1;
+    frames = np.empty((n_frame,), dtype=np.ndarray)
     for frame_idx in range(n_frame):
         actual_idx = frame_idx + startFrame
         frames[frame_idx] = cv2.imread(frames_path + "/frame%d.png" % actual_idx)
