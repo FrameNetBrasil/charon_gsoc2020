@@ -214,7 +214,7 @@ def writeFrames(videoCap, length, path):
         success, image = videoCap.read()
         #print('Read a new frame: ', success)
         if success:
-            cv2.imwrite(path + "/frame%d.jpg" % count, image)  # save frame as JPEG file
+            cv2.imwrite(path + "/frame%d.png" % count, image)  # save frame as JPEG file
             count = count + 1
     print("n frame count = ", count)
 
