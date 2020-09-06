@@ -319,8 +319,9 @@ def writeFrames(videoCap, length, path):
         #vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 1000))  # added this line
         success, image = videoCap.read()
         print('Read a new frame: ', success)
-        cv2.imwrite(path + "/frame%d.jpg" % count, image)  # save frame as JPEG file
-        count = count + 1
+        if success:
+            cv2.imwrite(path + "/frame%d.jpg" % count, image)  # save frame as JPEG file
+            count = count + 1
 
     #n_frame = length - 10
     #count = 0
