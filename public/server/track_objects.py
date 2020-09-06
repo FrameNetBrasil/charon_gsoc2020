@@ -77,7 +77,7 @@ def track():
     os.chdir(DATA_PATH + 'Object_Store')
 
     frames_path = DATA_PATH + 'Video_Frames/' + sha1
-    objects_path = DATA_PATH + 'Objects_Store/' + sha1
+    objects_path = DATA_PATH + 'Object_Store/' + sha1
     vatic = objectTracking.detect_and_track(frames_path, objects_path, start_time, end_time, idSentence)
     response = jsonify({"vatic": vatic})
     response.headers.add('Access-Control-Allow-Origin', '*')
