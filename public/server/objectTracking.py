@@ -141,23 +141,10 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     sourceAnnotation.text = 'vatic'
 
     #actual number of frames in folder
-    last_frame = len([name for name in os.listdir(frames_path) if os.path.isfile(name)]) - 1;
+    last_frame = len([f for f in os.listdir(frames_path) if os.path.isfile(os.path.join(frames_path, f))]) - 1
     count1 = 0
     for frame_idx in range(0, n_frame - 10, 10):
         actual_idx = frame_idx + startFrame
-        #filename = frames_path + "/frame%d.png" % actual_idx
-        #print(filename)
-        #labels, pixels = predict.return_pixels1(filename)
-        #pixels = []
-        #v_boxes = boxesByFrame[actual_idx]
-        #for i in range(len(v_boxes)):
-        #    box = v_boxes[i]
-        #    # get coordinates
-        #    y1, x1, y2, x2 = box.ymin, box.xmin, box.ymax, box.xmax
-        #    if y1 < 0: y1 = 0
-        #    if x1 < 0: x1 = 0
-        #    pixels.append((x1, x2, y1, y2))
-
         labels = labelsByFrame[actual_idx]
         pixels = pixelsByFrame[actual_idx]
         n_object = len(pixels)
@@ -185,9 +172,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             endFrameEl.text = str(last_frame) #str(frame_idx + 10)
 
             for j in range(frame_idx, frame_idx + 10):
-                actual_idx = frame_idx + startFrame
-                print("o = ", o)
-                print("j = ", j)
+                actual_idx = j + startFrame
 
                 if math.isnan(bboxs[j][o][3, 0]) or math.isnan(bboxs[j][o][3, 1]) or math.isnan(
                         bboxs[j][o][2, 0]) or math.isnan(bboxs[j][o][2, 1]) or math.isnan(
