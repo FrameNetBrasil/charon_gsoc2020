@@ -227,7 +227,7 @@ def return_pixels(filename):
                 print(v_labels[i], v_scores[i])
         # draw what we found
         pixels= draw_boxes(filename, v_boxes, v_labels, v_scores)
-        return v_labels,pixels
+        return v_labels, v_boxes, pixels
 
 def return_pixels1(filename):
         # load yolov3 model
