@@ -17,7 +17,9 @@ import urllib.request
 config = configparser.ConfigParser()
 config.read('config.ini')
 
-PATH_TO_VIDEO_DIR = config.get("charon", "dataPath") + 'Video_Store/full/'
+DATA_PATH = config.get("charon", "dataPath")
+
+PATH_TO_VIDEO_DIR =  DATA_PATH + 'Video_Store/full/'
 print(PATH_TO_VIDEO_DIR)
 
 app = Flask(__name__)
@@ -33,6 +35,7 @@ def hello():
 def frames():
     url_video = request.json['url_video']
     print(url_video)
+    sha1 = url_video.split('.')[-1]
     filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
     print(filename)
 
@@ -40,7 +43,16 @@ def frames():
         with open(filename, "wb") as out:
             shutil.copyfileobj(data, out)
 
-    frames = objectTracking.generate_frames(filename)
+    os.chdir(DATA_PATH + 'Video_Frames')
+    if os.path.isdir(f[len(f) - 1]) == False:
+        os.mkdir(f[len(f) - 1])
+    os.chdir(f[len(f) - 1])
+    if os.path.isdir(sha1) == True:
+        shutil.rmtree(sha1)
+    os.mkdir("sha1")
+    os.chdir(DATA_PATH + 'Video_Frames')
+
+    frames = objectTracking.generate_frames(filename, DATA_PATH + 'Video_frames/' + sha1)
 
     response = jsonify({"frames": frames})
     response.headers.add('Access-Control-Allow-Origin', '*')

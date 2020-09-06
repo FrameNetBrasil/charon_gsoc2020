@@ -308,7 +308,7 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
     # conn.close()
 
 
-def objectTracking1(rawVideo, length, fn, draw_bb=False, play_realtime=False, save_to_file=False):
+def writeFrames(rawVideo, length, path):
     # initialize
     n_frame = length - 10
     count = 0
@@ -318,103 +318,16 @@ def objectTracking1(rawVideo, length, fn, draw_bb=False, play_realtime=False, sa
     print(bboxs.shape)
     for frame_idx in range(n_frame):
         _, frames[frame_idx] = rawVideo.read()
-        cv2.imwrite(DATA_PATH + "Video_Frames/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
+        cv2.imwrite(path + "/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
         count = count + 1
 
-    count = 0
-    out = []
-    for frame_idx in range(0, n_frame - 10, 10):
-        labels = []
-        n_object = int(input("Number of objects to track:"))
-        bboxs[frame_idx] = np.empty((n_object, 4, 2), dtype=float)
-        for o in range(0, n_object):
-            (xmin, ymin, boxw, boxh) = cv2.selectROI("Select Object %d" % (o), frames[frame_idx])
-            cv2.destroyWindow("Select Object %d" % (o))
-            bboxs[frame_idx][o, :, :] = np.array(
-                [[xmin, ymin], [xmin + boxw, ymin], [xmin, ymin + boxh], [xmin + boxw, ymin + boxh]]).astype(float)
-            filename = DATA_PATH + "Video_Frames/frame%d.png" % frame_idx
-            im = Image.open(filename)
-            region = im.crop((xmin, ymin, xmin + boxw, ymin + boxh))
-            region.save(DATA_PATH + "Object_Store/frame_%d" % frame_idx + "_object_%d" % o + ".png")
-            object_path = DATA_PATH + "Object_Store/frame_%d" % frame_idx + "_object_%d" % o + ".png"
-            file = open(DATA_PATH + "Object_Store/object_annotations.csv", "a+")
-            wrtr = csv.writer(file)
-            label = input("Enter object label")
-            labels.append(label)
-            wrtr.writerow([object_path, labels[o]])
-            file.close()
-
-        out.append(cv2.VideoWriter(DATA_PATH + "Output/output.mp4", cv2.VideoWriter_fourcc(*'mp4v'), 1,
-                                   (frames[frame_idx].shape[1], frames[frame_idx].shape[0])))
-
-        v = 1
-
-        mySql_insert_query = "INSERT INTO objectmm (name, startFrame, endFrame, status, idAnnotationSetMM) VALUES ('frame%d_" % frame_idx + "object%d_" % o + \
-                             labels[o] + "',%d" % frame_idx + ",%d" % (frame_idx + 9) + ",%d" % v + ",%d" % 1 + ")"
-        print(mySql_insert_query)
-        cursor = conn.cursor()
-        cursor.execute(mySql_insert_query)
-        conn.commit()
-        print(cursor.rowcount, "Record inserted successfully into ObjectMM table")
-        cursor.close()
-        conn.close()
-
-        startXs, startYs = getFeatures(cv2.cvtColor(frames[frame_idx], cv2.COLOR_RGB2GRAY), bboxs[frame_idx],
-                                       use_shi=False)
-        if startXs.all() == -1 and startYs.all() == -1:
-            continue
-        else:
-            for i in range(frame_idx + 1, frame_idx + 10):
-                print('Processing Frame', i)
-                newXs, newYs = estimateAllTranslation(startXs, startYs, frames[i - 1], frames[i])
-                Xs, Ys, bboxs[i] = applyGeometricTransformation(startXs, startYs, newXs, newYs, bboxs[i - 1])
-
-                # update coordinates
-                startXs = Xs
-                startYs = Ys
-
-                # update feature points as required
-                n_features_left = np.sum(Xs != -1)
-                print('# of Features: %d' % n_features_left)
-                if (n_features_left > 0) and (n_features_left < 15):
-                    print('Generate New Features')
-                    startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
-
-                # draw bounding box and visualize feature point for each object
-                print("draw bounding box")
-                frames_draw[i] = frames[i].copy()
-                for j in range(0, n_object):
-                    (xmin, ymin, boxw, boxh) = cv2.boundingRect(bboxs[i][j, :, :].astype(int))
-                    frames_draw[i] = cv2.rectangle(frames_draw[i], (xmin, ymin), (xmin + boxw, ymin + boxh),
-                                                   (255, 0, 0), 2)
-                    for k in range(startXs.shape[0]):
-                        frames_draw[i] = cv2.circle(frames_draw[i], (int(startXs[k, j]), int(startYs[k, j])), 3,
-                                                    (0, 0, 255), thickness=2)
-
-                # imshow if to play the result in real time
-                if play_realtime:
-                    cv2.imshow("win", frames_draw[i])
-                    cv2.waitKey(10)
-                out[count].write(frames_draw[i])
-
-            out[count].release()
-
-            new = 2
-            # url = "http://charon.local:8600/server/track_objects.php"
-            # webbrowser.open(url,new=new)
-
-            # loop the resulting video (for debugging purpose only)
-            # while 1:
-            #     for i in range(1,n_frame):
-            #         cv2.imshow("win",frames_draw[i])
-            #         cv2.waitKey(50)
-
-def generate_frames(filename):
+def generate_frames(filename, path):
     print('========= Generating frames')
     print("capturing video")
     cap = cv2.VideoCapture(filename)
     cap.set(cv2.CAP_PROP_FPS, 25)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    writeFrames(cap, length, path)
     cap.release()
     print("ended generate frames ", length)
     return length
