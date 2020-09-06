@@ -310,17 +310,18 @@ def objectTracking(rawVideo, length, fn, sid, draw_bb=False, play_realtime=False
 
 def writeFrames(rawVideo, length, path):
     print('========= write frames path = ', path)
-    # initialize
     n_frame = length - 10
     count = 0
     frames = np.empty((n_frame,), dtype=np.ndarray)
-    frames_draw = np.empty((n_frame,), dtype=np.ndarray)
-    bboxs = np.empty((n_frame,), dtype=np.ndarray)
-    print(bboxs.shape)
+    print(frames.shape)
     for frame_idx in range(n_frame):
         _, frames[frame_idx] = rawVideo.read()
+        if frames[frame_idx] is None:
+            break
         cv2.imwrite(path + "/frame%d.png" % count, frames[frame_idx])  # save frame as JPEG file
         count = count + 1
+    n_frame = count
+    print("n frame count = ", n_frame)
 
 def generate_frames(filename, path):
     print('========= Generating frames')
