@@ -46,7 +46,7 @@ def frames():
     os.chdir(DATA_PATH + 'Video_Frames')
     if os.path.isdir(sha1) == True:
         shutil.rmtree(sha1)
-    os.mkdir("sha1")
+    os.mkdir(sha1)
     os.chdir(DATA_PATH + 'Video_Frames')
 
     frames = objectTracking.generate_frames(filename, DATA_PATH + 'Video_frames/' + sha1)
