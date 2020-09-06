@@ -79,7 +79,7 @@ def track():
     frames_path = DATA_PATH + 'Video_Frames/' + sha1
     objects_path = DATA_PATH + 'Object_Store/' + sha1
     vatic = objectTracking.detect_and_track(frames_path, objects_path, start_time, end_time, idSentence)
-    response = jsonify({"vatic": vatic})
+    response = jsonify({"sha1": sha1, "vatic": vatic})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
 
