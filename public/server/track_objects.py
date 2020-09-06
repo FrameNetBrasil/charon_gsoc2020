@@ -35,9 +35,10 @@ def hello():
 def frames():
     url_video = request.json['url_video']
     print(url_video)
-    sha1 = url_video.split('.')[-2]
     filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
+    sha1 = filename.split('.')[-2]
     print(filename)
+    print(sha1)
 
     with urllib.request.urlopen(url_video) as data:
         with open(filename, "wb") as out:
