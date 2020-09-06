@@ -144,6 +144,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             for j in range(frame_idx, frame_idx + 10):
                 actual_idx = frame_idx + startFrame
+                print("o = ", o)
+                print("j = ", j)
 
                 if bboxs[j][o][0, 0] < 0:
                     bboxs[j][o][0, 0] = 0.0
