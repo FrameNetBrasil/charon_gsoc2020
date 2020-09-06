@@ -316,7 +316,7 @@ def writeFrames(videoCap, length, path):
     #print(frames.shape)
     success = True
     while success:
-        vidcap.set(cv2.CAP_PROP_POS_MSEC, (count * 40))  # added this line
+        videoCap.set(cv2.CAP_PROP_POS_MSEC, (count * 40))  # added this line
         success, image = videoCap.read()
         print('Read a new frame: ', success)
         if success:
