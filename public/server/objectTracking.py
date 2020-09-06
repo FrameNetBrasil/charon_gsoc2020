@@ -58,7 +58,6 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     sourceAnnotation.text = 'vatic'
 
     #get the frames array
-    frames = []
     # n_frame (relative)
     n_frame = endFrame - startFrame + 1;
     for frame_idx in range(n_frame):
