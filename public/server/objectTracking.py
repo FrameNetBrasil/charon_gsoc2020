@@ -168,9 +168,10 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             id1.text = str(count1)
             createdFrame.text = '0'
-            startFrameEl.text = str(actual_idx)
+            #startFrameEl.text = str(actual_idx)
             #endFrameEl.text = str(last_frame) #str(frame_idx + 10)
 
+            n = 0
             for j in range(frame_idx, frame_idx + 10):
                 actual_idx = j + startFrame
 
@@ -197,7 +198,12 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
                 if bboxs[j][o][3, 1] < 0:
                     bboxs[j][o][3, 1] = 0.0
 
+                if n == 0:
+                    startFrameEl.text = str(actual_idx)
+                    n = n + 1
+
                 endFrameEl.text = str(actual_idx)
+
                 polygon = ET.SubElement(obj, 'polygon')
                 t = ET.SubElement(polygon, 't')
                 t.text = str(actual_idx) #str(j)
