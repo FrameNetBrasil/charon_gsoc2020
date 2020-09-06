@@ -109,7 +109,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         #print(filename)
         #labels, pixels = predict.return_pixels1(filename)
         pixels = []
-        for i in range(len(boxesByFrame[actual_idx])):
+        v_boxes = boxesByFrame[actual_idx]
+        for i in range(len(v_boxes)):
             box = v_boxes[i]
             # get coordinates
             y1, x1, y2, x2 = box.ymin, box.xmin, box.ymax, box.xmax
