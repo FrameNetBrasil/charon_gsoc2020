@@ -44,9 +44,6 @@ def frames():
             shutil.copyfileobj(data, out)
 
     os.chdir(DATA_PATH + 'Video_Frames')
-    if os.path.isdir(f[len(f) - 1]) == False:
-        os.mkdir(f[len(f) - 1])
-    os.chdir(f[len(f) - 1])
     if os.path.isdir(sha1) == True:
         shutil.rmtree(sha1)
     os.mkdir("sha1")
