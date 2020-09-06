@@ -29,6 +29,22 @@ cors = CORS(app)
 def hello():
     return jsonify('hello')
 
+@app.route('/frames', methods=['GET', 'POST'])
+def track():
+    url_video = request.json['url_video']
+    print(url_video)
+    filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
+    print(filename)
+
+    with urllib.request.urlopen(url_video) as data:
+        with open(filename, "wb") as out:
+            shutil.copyfileobj(data, out)
+
+    frames = objectTracking.generate_frames(filename)
+
+    response = jsonify({"frames": frames})
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 @app.route('/track', methods=['GET', 'POST'])
 def track():
