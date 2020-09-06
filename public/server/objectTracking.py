@@ -412,8 +412,8 @@ def objectTracking1(rawVideo, length, fn, draw_bb=False, play_realtime=False, sa
 def generate_frames(filename):
     print('========= Generating frames')
     print("capturing video")
-    cap.set(cv2.CAP_PROP_FPS, 25)
     cap = cv2.VideoCapture(filename)
+    cap.set(cv2.CAP_PROP_FPS, 25)
     length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     cap.release()
     print("ended generate frames ", length)
