@@ -30,7 +30,7 @@ def hello():
     return jsonify('hello')
 
 @app.route('/frames', methods=['GET', 'POST'])
-def track():
+def frames():
     url_video = request.json['url_video']
     print(url_video)
     filename = PATH_TO_VIDEO_DIR + url_video.split('/')[-1]
