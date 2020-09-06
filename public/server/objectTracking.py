@@ -128,8 +128,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
             verified = ET.SubElement(obj, 'verified')
             id1 = ET.SubElement(obj, 'id')
             createdFrame = ET.SubElement(obj, 'createdFrame')
-            startFrame = ET.SubElement(obj, 'startFrame')
-            endFrame = ET.SubElement(obj, 'endFrame')
+            startFrameEl = ET.SubElement(obj, 'startFrame')
+            endFrameEl = ET.SubElement(obj, 'endFrame')
             name.text = labels[o]
             moving.text = 'true'
             verified.text = '0'
@@ -138,8 +138,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             id1.text = str(count1)
             createdFrame.text = '0'
-            startFrame.text = '0' #str(frame_idx)
-            endFrame.text = str(last_frame) #str(frame_idx + 10)
+            startFrameEl.text = '0' #str(frame_idx)
+            endFrameEl.text = str(last_frame) #str(frame_idx + 10)
 
             for j in range(frame_idx, frame_idx + 10):
                 actual_idx = frame_idx + startFrame
