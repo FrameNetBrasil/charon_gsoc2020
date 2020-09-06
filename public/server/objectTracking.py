@@ -56,7 +56,10 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         print("== frame_idx = ", frame_idx)
         print("== actual_idx = ", actual_idx)
         filename = frames_path + "/frame%d.png" % actual_idx
-        labels, pixels = predict.return_pixels(filename)
+        labels, boxes, pixels = predict.return_pixels(filename)
+        labelsByFrame[actual_idx] = labels
+        boxesByFrame[actual_idx] = boxes
+        pixelsByFrame[actual_idx] = pixels
         n_object = len(pixels)
         print(n_object)
         print(len(labels))
@@ -97,9 +100,20 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     last_frame = len([name for name in os.listdir(frames_path) if os.path.isfile(name)]) - 1;
     count1 = 0
     for frame_idx in range(0, n_frame - 10, 10):
-        filename = frames_path + "frame%d.png" % actual_idx
-        print(filename)
-        labels, pixels = predict.return_pixels1(filename)
+        actual_idx = frame_idx + startFrame
+        #filename = frames_path + "/frame%d.png" % actual_idx
+        #print(filename)
+        #labels, pixels = predict.return_pixels1(filename)
+        pixels = []
+        for i in range(len(boxesByFrame[actual_idx])):
+            box = v_boxes[i]
+            # get coordinates
+            y1, x1, y2, x2 = box.ymin, box.xmin, box.ymax, box.xmax
+            if y1 < 0: y1 = 0
+            if x1 < 0: x1 = 0
+            pixels.append((x1, x2, y1, y2))
+            
+        labels = labelsByFrame[actual_idx]
         n_object = len(pixels)
         for o in range(0, n_object):
             obj = ET.SubElement(annotation, 'object')
