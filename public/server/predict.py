@@ -229,9 +229,16 @@ def return_pixels(filename):
         pixels= draw_boxes(filename, v_boxes, v_labels, v_scores)
         return v_labels, v_boxes, pixels
 
-def return_pixels1(filename):
+
+def get_model():
+	# load yolov3 model
+	model = load_model(MODEL_PATH + "model.h5")
+	return model
+
+
+def get_pixels(model, filename):
         # load yolov3 model
-        model = load_model(MODEL_PATH + "model.h5")
+        #model = load_model(MODEL_PATH + "model.h5")
         
         # define the expected input shape for the model
         input_w, input_h = 416, 416
