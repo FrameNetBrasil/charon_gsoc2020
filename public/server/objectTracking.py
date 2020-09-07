@@ -63,7 +63,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         print("== actual_idx = ", actual_idx)
         filename = frames_path + "/frame%d.png" % actual_idx
         #labels, pixels = predict.return_pixels1(filename)
-        labels, pixels = predict.get_pixels1(model, filename)
+        labels, pixels = predict.get_pixels(model, filename)
         labelsByFrame[actual_idx] = labels
         #boxesByFrame[actual_idx] = boxes
         pixelsByFrame[actual_idx] = pixels

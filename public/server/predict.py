@@ -232,7 +232,7 @@ def return_pixels(filename):
 
 def get_model():
 	# load yolov3 model
-	model = load_model(MODEL_PATH + "model.h5")
+	model = load_model(MODEL_PATH + "model.h5", compile=False)
 	return model
 
 
