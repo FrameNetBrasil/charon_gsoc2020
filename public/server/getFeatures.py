@@ -9,12 +9,12 @@ def getFeatures(img,bbox,use_shi=False):
     flag=0
     temp = np.empty((n_object,),dtype=np.ndarray)   # temporary storage of x,y coordinates
     for i in range(n_object):
-        print("i = ", i)
+        # print("i = ", i)
         (xmin, ymin, boxw, boxh) = cv2.boundingRect(bbox[i,:,:].astype(int))
         print(xmin, ' ', ymin, ' ', boxw, ' ', boxh)
         roi = img[ymin:ymin+boxh,xmin:xmin+boxw]
-        print(roi)
-        print(roi.size)
+        # print(roi)
+        # print(roi.size)
         if not roi.size:
             flag=1
             break
