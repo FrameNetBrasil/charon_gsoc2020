@@ -13,7 +13,7 @@ import configparser
 # Load the configuration file
 config = configparser.ConfigParser()
 config.read('config.ini')
-print(config.sections())
+# print(config.sections())
 MODEL_PATH = config.get("charon", "modelPath")
 
 class BoundBox:
@@ -189,7 +189,7 @@ def draw_boxes(filename, v_boxes, v_labels, v_scores):
 def return_pixels(filename):
         # load yolov3 model
         model = load_model(MODEL_PATH + "model.h5")
-        print(model)
+        # print(model)
         
         # define the expected input shape for the model
         input_w, input_h = 416, 416
@@ -223,8 +223,8 @@ def return_pixels(filename):
         # get the details of the detected objects
         v_boxes, v_labels, v_scores = get_boxes(boxes, labels, class_threshold)
         # summarize what we found
-        for i in range(len(v_boxes)):
-                print(v_labels[i], v_scores[i])
+        # for i in range(len(v_boxes)):
+        #        print(v_labels[i], v_scores[i])
         # draw what we found
         pixels= draw_boxes(filename, v_boxes, v_labels, v_scores)
         return v_labels, v_boxes, pixels
