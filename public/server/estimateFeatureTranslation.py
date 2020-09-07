@@ -30,7 +30,7 @@ def estimateFeatureTranslation(startX,startY,Ix,Iy,img1,img2):
         b=-I.dot(Ip)
         # solution=inv(A).dot(b)
         #solution = np.linalg.solve(A, b)
-        solution = np.linalg.pinv(A, b)
+        solution = np.linalg.pinv(A).dot(b)
         X += solution[0,0]
         Y += solution[1,0]
     
