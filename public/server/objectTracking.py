@@ -68,8 +68,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         #boxesByFrame[actual_idx] = boxes
         pixelsByFrame[actual_idx] = pixels
         n_object = len(pixels)
-        print("n_object = ",n_object)
-        print(len(labels))
+        # print("n_object = ",n_object)
+        # print(len(labels))
         bboxs[frame_idx] = np.empty((n_object, 4, 2), dtype=float)
         for o in range(0, n_object):
             print("object #", o)
@@ -105,9 +105,9 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
                 # update feature points as required
                 n_features_left = np.sum(Xs != -1)
-                print('# of Features: %d' % n_features_left)
+                # print('# of Features: %d' % n_features_left)
                 if (n_features_left > 0) and (n_features_left < 15):
-                    print('Generate New Features')
+                    # print('Generate New Features')
                     startXs, startYs = getFeatures(cv2.cvtColor(frames[i], cv2.COLOR_RGB2GRAY), bboxs[i])
 
                 # draw bounding box and visualize feature point for each object
@@ -122,7 +122,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
 
             cv2.destroyAllWindows()
             #out[count].release()
-            print("Ending", count)
+            # print("Ending", count)
             count = count + 1
 
     print("End objects generation")
@@ -150,8 +150,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         labels = labelsByFrame[actual_idx]
         pixels = pixelsByFrame[actual_idx]
         n_object = len(pixels)
-        print("n_object = ",n_object)
-        print(pixels);
+        # print("n_object = ",n_object)
+        # print(pixels);
         for o in range(0, n_object):
             obj = ET.SubElement(annotation, 'object')
             name = ET.SubElement(obj, 'name')
@@ -250,7 +250,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
                 else:
                     l.text = '0'
 
-            print("Ending count1", count1)
+            # print("Ending count1", count1)
 
     # create a new XML file with the results
     indent(annotation)
