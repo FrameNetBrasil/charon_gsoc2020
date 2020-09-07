@@ -54,6 +54,7 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
     boxesByFrame = {}
     pixelsByFrame = {}
 
+    model = predict.get_model()
     count = 0
     bboxs = np.empty((n_frame,), dtype=np.ndarray)
     for frame_idx in range(0, n_frame - 10, 10):
@@ -61,7 +62,8 @@ def objectTracking(frames_path, objects_path, startFrame, endFrame, idSentence, 
         print("== frame_idx = ", frame_idx)
         print("== actual_idx = ", actual_idx)
         filename = frames_path + "/frame%d.png" % actual_idx
-        labels, pixels = predict.return_pixels1(filename)
+        #labels, pixels = predict.return_pixels1(filename)
+        labels, pixels = predict.get_pixels1(model, filename)
         labelsByFrame[actual_idx] = labels
         #boxesByFrame[actual_idx] = boxes
         pixelsByFrame[actual_idx] = pixels
