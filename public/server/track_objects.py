@@ -12,6 +12,7 @@ import configparser
 import io
 import shutil
 import urllib.request
+import predict
 
 # Load the configuration file
 config = configparser.ConfigParser()
@@ -26,6 +27,7 @@ app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 cors = CORS(app)
 
+model = predict.get_model()
 
 @app.route('/hello', methods=['GET', 'POST'])
 def hello():
@@ -78,7 +80,7 @@ def track():
 
     frames_path = DATA_PATH + 'Video_Frames/' + sha1
     objects_path = DATA_PATH + 'Object_Store/' + sha1
-    vatic = objectTracking.detect_and_track(frames_path, objects_path, start_time, end_time, idSentence)
+    vatic = objectTracking.detect_and_track(frames_path, objects_path, start_time, end_time, idSentence, model)
     response = jsonify({"sha1": sha1, "vatic": vatic})
     response.headers.add('Access-Control-Allow-Origin', '*')
     return response
