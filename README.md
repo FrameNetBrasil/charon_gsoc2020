@@ -89,8 +89,18 @@ ALTER TABLE objectmm DROP FOREIGN KEY fk_ObjectMM_FrameElement
 * MariaDb 10.4
 * PhpMyAdmin 5.0.1
 * React 
-* IBM Cloud Speech-to-Text API URL: https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?end_of_phrase_silence_time=2.0&split_transcript_at_phrase_end=true&speaker_labels=true
+* IBM Cloud Speech-to-Text API Service Credentials (User Account- Prishita Ray):  
 
+{
+  "apikey": "jrdLqCqvqz9JU8Eu8Ls7c40_uXTmCFrb3iWbLk77KgvJ",
+  "iam_apikey_description": "Auto-generated for key d372a095-0998-4f7f-8557-afcf7301ca4a",
+  "iam_apikey_name": "Service credentials-1",
+  "iam_role_crn": "crn:v1:bluemix:public:iam::::serviceRole:Manager",
+  "iam_serviceid_crn": "crn:v1:bluemix:public:iam-identity::a/6de8c018fee0fb1865ab45744f2f9483::serviceid:ServiceId-fac502ab-3ee9-44df-b3d5-bcb2158a69cd",
+  "url": "https://api.us-south.speech-to-text.watson.cloud.ibm.com/instances/0c057c58-d790-44ba-97b5-2094825614fa"
+}  
+
+Service Access URL: https://stream.watsonplatform.net/speech-to-text/api/v1/recognize?end_of_phrase_silence_time=2.0&split_transcript_at_phrase_end=true&speaker_labels=true 
 
 
 <!--
